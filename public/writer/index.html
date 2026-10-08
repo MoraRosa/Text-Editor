@@ -129,7 +129,7 @@
       </button>
     </div>
 
-    <div class="tool-group"><button class="tool" data-cmd="justifyLeft" aria-label="Align left" title="Align left">≡</button><button class="tool" data-cmd="justifyCenter" aria-label="Align center" title="Align center">☰</button><button class="tool" data-cmd="removeFormat" aria-label="Clear formatting" title="Clear formatting">T̸</button></div>
+    <div class="tool-group"><button class="tool" data-cmd="justifyLeft" aria-label="Align left" title="Align left"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 10h10M4 15h16M4 20h10"/></svg></button><button class="tool" data-cmd="justifyCenter" aria-label="Align center" title="Align center"><svg viewBox="0 0 24 24"><path d="M4 5h16M7 10h10M4 15h16M7 20h10"/></svg></button><button class="tool" data-cmd="removeFormat" aria-label="Clear formatting" title="Clear formatting"><svg viewBox="0 0 24 24"><path d="M4 4h14M11 4v13M7 17h8M16 14l6 6m0-6-6 6"/></svg></button></div>
     <div class="tool-group table-tools" id="tableTools"><button class="tool" id="addRow" title="Add row" aria-label="Add row">+ Row</button><button class="tool" id="addColumn" title="Add column" aria-label="Add column">+ Col</button><button class="tool" id="deleteTable" title="Delete table" aria-label="Delete table">×</button></div>
     <div class="tool-group image-tools" id="imageTools"><select class="editor-select" id="imageAlign" aria-label="Image placement"><option value="left">Image left</option><option value="center">Image center</option><option value="right">Image right</option></select><select class="editor-select" id="imageSize" aria-label="Image size"><option value="100">Full width</option><option value="50">Half width</option><option value="25">Quarter width</option></select><button class="tool" id="deleteImage" title="Delete image" aria-label="Delete image">×</button></div>
     <!-- Undo/redo -->
@@ -181,7 +181,7 @@
     <label for="imageUrl">Image address</label>
     <input type="url" id="imageUrl" placeholder="https://example.com/photo.jpg">
     <label for="imageFile">…or pick a file</label>
-    <input type="file" id="imageFile" accept="image/*" style="margin-bottom:14px;color:var(--text-secondary);font-size:12px;">
+    <input type="file" id="imageFile" accept="image/png,image/jpeg,image/gif,image/webp,image/avif">
     <div class="actions">
       <button class="btn-cancel" data-close-modal="imageModal">Cancel</button>
       <button class="btn-primary" id="imageConfirm">Add image</button>

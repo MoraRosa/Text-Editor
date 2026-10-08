@@ -134,7 +134,9 @@
       const cmd = btn.dataset.cmd;
       let on = false;
       try { on = document.queryCommandState(cmd); } catch (_) {}
+      if (cmd === 'removeFormat') on = false;
       btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', String(on));
     });
 
     // Block label
@@ -432,7 +434,7 @@
       if (['TD','TH'].includes(node.tagName)) for (const k of ['colspan','rowspan']) { const v = parseInt(node.getAttribute(k)); if (v > 0 && v <= 20) attrs[k] = v; }
       if (local) {
         if (node.classList.contains('checklist')) attrs.class = 'checklist';
-        if (node.tagName === 'INPUT') { if (node.type !== 'checkbox') { node.remove(); return; } attrs.type = 'checkbox'; attrs.contenteditable = 'false'; if (node.hasAttribute('checked')) attrs.checked = ''; }
+        if (node.tagName === 'INPUT') { if (node.type !== 'checkbox') { node.remove(); return; } attrs.type = 'checkbox'; attrs.contenteditable = 'false'; attrs.tabindex = '0'; attrs['aria-label'] = 'Complete task'; if (node.hasAttribute('checked')) attrs.checked = ''; }
         const style = node.style;
         const values = {};
         for (const k of ['textAlign','fontWeight','fontStyle','textDecoration','width','marginLeft','marginRight','display']) if (style[k] && /^[a-z0-9%. ()-]+$/i.test(style[k])) values[k] = style[k];

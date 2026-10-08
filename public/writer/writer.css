@@ -628,12 +628,19 @@
   .status-bar > :last-child { margin-left:auto; }
   .modal input[type=number], .modal input[type=date] { background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border-color); padding:9px; border-radius:6px; width:100%; margin-bottom:14px; }
   .modal-error { color:var(--accent); font-size:12px; margin-top:8px; }
-  .theme-dark .color-dot { background:var(--bg-primary); }
   .swatch-dark { background:var(--swatch-dark); } .swatch-light { background:var(--swatch-light); } .swatch-pink { background:var(--swatch-pink); } .swatch-sky { background:var(--swatch-sky); } .swatch-emerald { background:var(--swatch-emerald); }
   .table-grid .cell:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
   .modal label { margin-top:8px; }
   @media(max-width:640px) { .brand { padding-right:8px; font-size:15px; } .topbar { padding:8px 10px; gap:4px; } .doc-title { width:120px; min-width:0; } .toolbar { padding:6px; } .paper { padding:30px 22px 80px; } .status-bar { padding:8px 12px; gap:10px; } }
   @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none !important; } }
   @media print { body,.app { height:auto; overflow:visible; } .topbar,.toolbar,.status-bar,.modal-overlay { display:none !important; } .page-scroll { display:block; overflow:visible; padding:0; } .paper { padding:0; max-width:none; } }
+
+  .tool:disabled { opacity:.35; cursor:default; }
+  .modal input[type=file] { margin-bottom:14px; color:var(--text-secondary); font-size:12px; max-width:100%; }
+  .btn.primary, .tool.active, .modal .actions .btn-primary { color:var(--bg-primary); }
+  .theme-dark { --action-text:oklch(.20 0 0); }
+  .theme-light, .theme-sky, .theme-emerald { --action-text:oklch(1 0 0); }
+  .theme-pink { --action-text:oklch(.25 .06 350); }
+  .btn.primary, .tool.active, .modal .actions .btn-primary { color:var(--action-text); }
 
 :root { --ink-1:oklch(1.0000 0.0000 89.88); --ink-2:oklch(0.0000 0.0000 0.00 / 0.55); --swatch-dark:oklch(.239 0 0); --swatch-light:oklch(.970 0 0); --swatch-pink:oklch(.72 .20 350); --swatch-sky:oklch(.60 .17 250); --swatch-emerald:oklch(.60 .14 145); }
