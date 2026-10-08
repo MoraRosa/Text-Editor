@@ -613,6 +613,7 @@
   .brand { display:flex; align-items:center; gap:9px; font-size:17px; font-weight:600; padding-right:16px; border-right:1px solid var(--border-color); }
   .brand svg { width:22px; height:22px; color:var(--accent); fill:none; stroke:currentColor; stroke-width:1.6; }
   .topbar { min-height:64px; padding:10px 24px; }
+  .topbar { z-index:20; }
   .toolbar { justify-content:flex-start; padding:8px 22px; min-height:55px; }
   .paper { min-height:350px; flex-shrink:0; line-height:1.85; }
   .paper.is-empty::before { content:attr(data-placeholder); color:var(--text-secondary); pointer-events:none; }
