@@ -189,7 +189,7 @@
       const ul = document.createElement('ul');
       ul.className = 'checklist';
       const li = document.createElement('li');
-      li.innerHTML = '<input type="checkbox" contenteditable="false"><span>&nbsp;</span>';
+        li.innerHTML = '<input type="checkbox" contenteditable="false" tabindex="0" aria-label="Complete task"><span><br></span>';
       ul.appendChild(li);
       range.insertNode(ul);
       // place caret inside span
@@ -206,9 +206,19 @@
         const ul = document.createElement('ul');
         ul.className = 'checklist';
         const li = document.createElement('li');
-        li.innerHTML = '<input type="checkbox" contenteditable="false"><span>' + node.innerHTML + '</span>';
+        li.innerHTML = '<input type="checkbox" contenteditable="false" tabindex="0" aria-label="Complete task"><span>' + node.innerHTML + '</span>';
         node.parentNode.replaceChild(ul, node);
         ul.appendChild(li);
+        placeCaret(li.querySelector('span'), true);
+      } else {
+        const ul = node.closest('.checklist');
+        Array.from(ul.children).forEach(li => {
+          const paragraph = document.createElement('p');
+          paragraph.innerHTML = li.querySelector('span')?.innerHTML || '<br>';
+          ul.before(paragraph);
+          if (li === node) placeCaret(paragraph, true);
+        });
+        ul.remove();
       }
     }
     scheduleSave();
@@ -612,6 +622,7 @@
   document.getElementById('addColumn').addEventListener('click', () => { if (!selectedTable) return; Array.from(selectedTable.rows).forEach(row => row.insertCell().innerHTML = '<br>'); changed(); });
   document.getElementById('deleteTable').addEventListener('click', () => { selectedTable?.remove(); selectedTable = null; lastRange = null; changed(); contextTools(); });
   paper.addEventListener('keydown', e => {
+    if (e.target.matches('input[type="checkbox"]')) return;
     const el = selectionElement(); const cell = el?.closest('td,th'); const li = el?.closest('.checklist li');
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -625,9 +636,15 @@
     if (e.key === 'Enter' && !e.shiftKey && li) {
       e.preventDefault(); const span = li.querySelector('span');
       if (!span?.textContent.trim()) { const ul = li.closest('ul'); const p = document.createElement('p'); p.innerHTML = '<br>'; ul.after(p); li.remove(); if (!ul.children.length) ul.remove(); placeCaret(p); }
-      else { const next = document.createElement('li'); next.innerHTML = '<input type="checkbox" contenteditable="false"><span><br></span>'; const r=getSelection().getRangeAt(0); const tail=document.createRange(); tail.selectNodeContents(span); tail.setStart(r.endContainer,r.endOffset); const frag=tail.extractContents(); const target=next.querySelector('span'); if(frag.textContent) {target.replaceChildren(frag);} li.after(next); placeCaret(target); }
+      else { const next = document.createElement('li'); next.innerHTML = '<input type="checkbox" contenteditable="false" tabindex="0" aria-label="Complete task"><span><br></span>'; const r=getSelection().getRangeAt(0); const tail=document.createRange(); tail.selectNodeContents(span); if (span.contains(r.endContainer)) tail.setStart(r.endContainer,r.endOffset); else tail.collapse(false); const frag=tail.extractContents(); const target=next.querySelector('span'); if(frag.textContent) {target.replaceChildren(frag);} li.after(next); placeCaret(target); }
       changed();
     }
+  });
+  paper.addEventListener('beforeinput', e => {
+    if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') { e.preventDefault(); travel(e.inputType === 'historyUndo' ? -1 : 1); }
+  });
+  paper.addEventListener('change', e => {
+    if (e.target.matches('input[type="checkbox"]')) { e.target.toggleAttribute('checked', e.target.checked); changed(); }
   });
   document.addEventListener('keydown', e => {
     const modal = document.querySelector('.modal-overlay.active');
