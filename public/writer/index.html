@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Writer — A quieter place to write</title><meta name="description" content="A simple, theme-aware text editor with rich formatting, images, checklists and tables. Everything stays on your device."><link rel="stylesheet" href="./writer.css"></head>
+<body>
+<div class="app theme-dark" id="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+<div class="brand"><svg viewBox="0 0 24 24"><path d="m4 17 1 4 4-1L21 8l-5-5L4 17Z"/><path d="m13 6 5 5M4 17l5 3"/></svg>Writer</div>
+    <input class="doc-title" id="docTitle" aria-label="Document title" value="Untitled document" spellcheck="false">
+    <span class="spacer"></span>
+
+    <!-- Save / Export menu -->
+    <div class="menu-wrap">
+      <button class="btn primary" id="saveMenuBtn">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Export
+      </button>
+      <div class="menu" id="saveMenu">
+        <div class="menu-label">Download as</div>
+        <button data-export="doc">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Word document (.doc)
+        </button>
+        <button data-export="pdf">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Print / Save as PDF
+        </button>
+        <button data-export="txt">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+          Plain text (.txt)
+        </button>
+        <button data-export="html">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Webpage (.html)
+        </button>
+      </div>
+    </div>
+
+    <!-- Theme menu -->
+    <div class="menu-wrap">
+      <button class="btn" id="themeBtn" aria-label="Change look" title="Change look">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="menu" id="themeMenu">
+        <button data-theme="theme-dark"><span class="color-dot swatch-dark"></span> Dark</button>
+        <button data-theme="theme-light"><span class="color-dot swatch-light"></span> Light</button>
+        <button data-theme="theme-pink"><span class="color-dot swatch-pink"></span> Pink</button>
+        <button data-theme="theme-sky"><span class="color-dot swatch-sky"></span> Sky Blue</button>
+        <button data-theme="theme-emerald"><span class="color-dot swatch-emerald"></span> Emerald</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom toolbar -->
+  <div class="toolbar" id="toolbar">
+    <!-- Style picker -->
+    <div class="tool-group">
+      <div class="style-picker">
+        <button class="style-btn" id="styleBtn">
+          <span id="styleLabel">Normal text</span>
+          <svg viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>
+        </button>
+        <div class="style-menu" id="styleMenu">
+          <button data-block="h1"><span class="s-label">Title</span></button>
+          <button data-block="h2"><span class="s-label">Heading</span></button>
+          <button data-block="h3"><span class="s-label">Subheading</span></button>
+          <button data-block="p"><span class="s-label">Normal text</span></button>
+          <button data-block="blockquote"><span class="s-label">Quote</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text formatting -->
+    <div class="tool-group">
+      <button class="tool" data-cmd="bold" aria-label="Bold" title="Bold (Ctrl+B)">
+        <svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6z"/><path d="M6 12h9a4 4 0 0 1 0 8H6z"/></svg>
+        <span class="tooltip">Bold</span>
+      </button>
+      <button class="tool" data-cmd="italic" aria-label="Italic" title="Italic (Ctrl+I)">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+        <span class="tooltip">Italic</span>
+      </button>
+      <button class="tool" data-cmd="underline" aria-label="Underline" title="Underline (Ctrl+U)">
+        <svg viewBox="0 0 24 24"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="4" y1="20" x2="20" y2="20"/></svg>
+        <span class="tooltip">Underline</span>
+      </button>
+      <button class="tool" data-cmd="strikeThrough" aria-label="Strikethrough" title="Strikethrough">
+        <svg viewBox="0 0 24 24"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
+        <span class="tooltip">Strikethrough</span>
+      </button>
+    </div>
+
+    <!-- Lists -->
+    <div class="tool-group">
+      <button class="tool" data-cmd="insertUnorderedList" aria-label="Bulleted list" title="Bulleted list">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>
+        <span class="tooltip">Bulleted list</span>
+      </button>
+      <button class="tool" data-cmd="insertOrderedList" aria-label="Numbered list" title="Numbered list">
+        <svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+        <span class="tooltip">Numbered list</span>
+      </button>
+      <button class="tool" id="checklistBtn" aria-label="Checklist" title="Checklist">
+        <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span class="tooltip">Checklist</span>
+      </button>
+    </div>
+
+    <!-- Insert -->
+    <div class="tool-group">
+      <button class="tool" id="linkBtn" aria-label="Insert link" title="Insert link (Ctrl+K)">
+        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span class="tooltip">Insert link</span>
+      </button>
+      <button class="tool" id="imageBtn" aria-label="Insert image" title="Insert image">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span class="tooltip">Insert image</span>
+      </button>
+      <button class="tool" id="tableBtn" aria-label="Insert table" title="Insert table">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        <span class="tooltip">Insert table</span>
+      </button>
+      <button class="tool" id="dateBtn" aria-label="Insert date" title="Insert date">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="tooltip">Insert date</span>
+      </button>
+      <button class="tool" id="dividerBtn" aria-label="Divider line" title="Divider line">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/></svg>
+        <span class="tooltip">Divider</span>
+      </button>
+    </div>
+
+    <div class="tool-group"><button class="tool" data-cmd="justifyLeft" aria-label="Align left" title="Align left"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 10h10M4 15h16M4 20h10"/></svg></button><button class="tool" data-cmd="justifyCenter" aria-label="Align center" title="Align center"><svg viewBox="0 0 24 24"><path d="M4 5h16M7 10h10M4 15h16M7 20h10"/></svg></button><button class="tool" data-cmd="removeFormat" aria-label="Clear formatting" title="Clear formatting"><svg viewBox="0 0 24 24"><path d="M4 4h14M11 4v13M7 17h8M16 14l6 6m0-6-6 6"/></svg></button></div>
+    <div class="tool-group table-tools" id="tableTools"><button class="tool" id="addRow" title="Add row" aria-label="Add row">+ Row</button><button class="tool" id="addColumn" title="Add column" aria-label="Add column">+ Col</button><button class="tool" id="deleteTable" title="Delete table" aria-label="Delete table">×</button></div>
+    <div class="tool-group image-tools" id="imageTools"><select class="editor-select" id="imageAlign" aria-label="Image placement"><option value="left">Image left</option><option value="center">Image center</option><option value="right">Image right</option></select><select class="editor-select" id="imageSize" aria-label="Image size"><option value="100">Full width</option><option value="50">Half width</option><option value="25">Quarter width</option></select><button class="tool" id="deleteImage" title="Delete image" aria-label="Delete image">×</button></div>
+    <!-- Undo/redo -->
+    <div class="tool-group">
+      <button class="tool" id="undoBtn" aria-label="Undo" title="Undo (Ctrl+Z)">
+        <svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+        <span class="tooltip">Undo</span>
+      </button>
+      <button class="tool" id="redoBtn" aria-label="Redo" title="Redo (Ctrl+Y)">
+        <svg viewBox="0 0 24 24"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg>
+        <span class="tooltip">Redo</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Page -->
+  <div class="page-scroll" id="pageScroll">
+    <div class="paper" id="paper" contenteditable="true" role="textbox" aria-label="Document content" aria-multiline="true" spellcheck="true"
+         data-placeholder="Start writing…"></div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span id="wordCount">0 words</span>
+    <span id="charCount">0 characters</span>
+    <span><span class="dot"></span><span id="saveStatus" role="status" aria-live="polite">Ready</span></span>
+  </div>
+</div>
+
+<!-- Link modal -->
+<div class="modal-overlay" role="dialog" aria-modal="true" id="linkModal">
+  <div class="modal">
+    <h3>Insert link</h3>
+    <label for="linkText">Text to display</label>
+    <input type="text" id="linkText" placeholder="Visit our site">
+    <label for="linkUrl">Web address</label>
+    <input type="url" id="linkUrl" placeholder="https://example.com">
+    <div class="actions">
+      <button class="btn-cancel" data-close-modal="linkModal">Cancel</button>
+      <button class="btn-primary" id="linkConfirm">Add link</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image modal -->
+<div class="modal-overlay" role="dialog" aria-modal="true" id="imageModal">
+  <div class="modal">
+    <h3>Insert image</h3>
+    <label for="imageUrl">Image address</label>
+    <input type="url" id="imageUrl" placeholder="https://example.com/photo.jpg">
+    <label for="imageFile">…or pick a file</label>
+    <input type="file" id="imageFile" accept="image/png,image/jpeg,image/gif,image/webp,image/avif">
+    <div class="actions">
+      <button class="btn-cancel" data-close-modal="imageModal">Cancel</button>
+      <button class="btn-primary" id="imageConfirm">Add image</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" role="dialog" aria-modal="true" aria-label="Insert date" id="dateModal"><div class="modal"><h3>Insert date</h3><label for="dateValue">Date</label><input type="date" id="dateValue"><div class="actions"><button class="btn-cancel" data-close-modal="dateModal">Cancel</button><button class="btn-primary" id="dateConfirm">Insert date</button></div></div></div>
+<!-- Table modal -->
+<div class="modal-overlay" role="dialog" aria-modal="true" id="tableModal">
+  <div class="modal">
+    <h3>Insert table</h3>
+    <div class="table-grid-label" id="tableGridLabel">1 × 1</div>
+    <div class="table-grid" id="tableGrid"></div>
+    <div class="actions">
+      <button class="btn-cancel" data-close-modal="tableModal">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="./writer.js"></script></body></html>
