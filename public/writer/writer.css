@@ -645,3 +645,16 @@
   .btn.primary, .tool.active, .modal .actions .btn-primary { color:var(--action-text); }
 
 :root { --ink-1:oklch(1.0000 0.0000 89.88); --ink-2:oklch(0.0000 0.0000 0.00 / 0.55); --swatch-dark:oklch(.239 0 0); --swatch-light:oklch(.970 0 0); --swatch-pink:oklch(.72 .20 350); --swatch-sky:oklch(.60 .17 250); --swatch-emerald:oklch(.60 .14 145); }
+
+/* ---- Voice buttons (dictation / read aloud active state) ---- */
+.tool.listening {
+  background: var(--accent);
+  color: var(--bg-primary);
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+.tool.listening:hover { background: var(--accent-hover); }
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent); }
+  50% { box-shadow: 0 0 0 5px transparent; }
+}
+.tool:disabled { opacity: 0.4; cursor: not-allowed; }
