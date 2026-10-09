@@ -662,6 +662,96 @@
   window.addEventListener('pagehide', saveDoc);
   document.addEventListener('visibilitychange', () => { if (document.hidden) saveDoc(); });
 
+  // --- Dictation (speech to text, Web Speech API) ---
+  const micBtn = document.getElementById('micBtn');
+  const speakBtn = document.getElementById('speakBtn');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null, dictating = false;
+
+  if (!SpeechRecognition) {
+    micBtn.disabled = true;
+    micBtn.title = 'Dictation is not supported in this browser (try Chrome or Edge)';
+  } else {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = navigator.language || 'en-US';
+
+    recognition.addEventListener('result', e => {
+      let finalText = '', interimText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+        else interimText += e.results[i][0].transcript;
+      }
+      if (finalText) {
+        paper.focus();
+        restoreSelection();
+        document.execCommand('insertText', false, finalText.replace(/^\s+/, ' '));
+        saveSelection();
+        scheduleSave();
+      }
+      setStatus(interimText ? 'Listening: ' + interimText.slice(-40) : 'Listening…');
+    });
+    recognition.addEventListener('end', () => { if (dictating) recognition.start(); });
+    recognition.addEventListener('error', e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') stopDictation('Microphone blocked');
+      else if (e.error === 'no-speech') setStatus('Listening…');
+      else stopDictation('Dictation stopped');
+    });
+  }
+
+  function startDictation() {
+    stopSpeaking();
+    saveSelection();
+    dictating = true;
+    micBtn.classList.add('listening');
+    micBtn.setAttribute('aria-pressed', 'true');
+    try { recognition.start(); } catch (_) {}
+    setStatus('Listening…');
+  }
+  function stopDictation(status) {
+    dictating = false;
+    micBtn.classList.remove('listening');
+    micBtn.setAttribute('aria-pressed', 'false');
+    if (recognition) try { recognition.stop(); } catch (_) {}
+    setStatus(status || 'Saved');
+  }
+  micBtn.addEventListener('mousedown', e => e.preventDefault());
+  micBtn.addEventListener('click', () => { if (dictating) stopDictation(); else startDictation(); });
+
+  // --- Read aloud (text to speech) ---
+  let speaking = false;
+  if (!('speechSynthesis' in window)) {
+    speakBtn.disabled = true;
+    speakBtn.title = 'Read aloud is not supported in this browser';
+  }
+  function stopSpeaking() {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    speaking = false;
+    speakBtn.classList.remove('listening');
+    speakBtn.setAttribute('aria-pressed', 'false');
+  }
+  speakBtn.addEventListener('mousedown', e => e.preventDefault());
+  speakBtn.addEventListener('click', () => {
+    if (speaking) { stopSpeaking(); setStatus('Saved'); return; }
+    const sel = window.getSelection();
+    const selected = sel && sel.rangeCount && paper.contains(sel.getRangeAt(0).commonAncestorContainer) ? sel.toString().trim() : '';
+    const text = selected || (paper.innerText || '').trim();
+    if (!text) { setStatus('Nothing to read'); return; }
+    if (dictating) stopDictation();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1;
+    utter.addEventListener('end', () => { stopSpeaking(); setStatus('Saved'); });
+    utter.addEventListener('error', () => { stopSpeaking(); setStatus('Saved'); });
+    speaking = true;
+    speakBtn.classList.add('listening');
+    speakBtn.setAttribute('aria-pressed', 'true');
+    setStatus(selected ? 'Reading selection…' : 'Reading document…');
+    speechSynthesis.speak(utter);
+  });
+  window.addEventListener('pagehide', () => { stopSpeaking(); if (dictating) stopDictation(); });
+
   // --- Init ---
   loadTheme();
   loadDoc();
