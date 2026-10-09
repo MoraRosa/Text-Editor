@@ -623,8 +623,11 @@
   document.addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey;
     if (!mod || document.querySelector('.modal-overlay.active')) return;
-    if (e.key.toLowerCase() !== 's' && document.activeElement !== paper && !paper.contains(document.activeElement)) return;
     const k = e.key.toLowerCase();
+    if (k === 'f' && e.shiftKey) { e.preventDefault(); toggleFocus(); return; }
+    if (k === '/' ) { e.preventDefault(); openModal('shortcutModal'); return; }
+    if (k === 'f') { e.preventDefault(); openFind(); return; }
+    if (e.key.toLowerCase() !== 's' && document.activeElement !== paper && !paper.contains(document.activeElement)) return;
     if (k === 'b') { e.preventDefault(); exec('bold'); }
     else if (k === 'i') { e.preventDefault(); exec('italic'); }
     else if (k === 'u') { e.preventDefault(); exec('underline'); }
@@ -648,7 +651,9 @@
   let selectedImage = null, selectedTable = null;
   function record() {
     if (restoring) return;
-    const value = paper.innerHTML.replace(/ selected-image/g, '');
+    const clone = paper.cloneNode(true);
+    clone.querySelectorAll('mark[data-find]').forEach(m => m.replaceWith(...m.childNodes));
+    const value = clone.innerHTML.replace(/ selected-image/g, '');
     if (history[historyIndex] === value) return;
     history = history.slice(0, historyIndex + 1); history.push(value);
     if (history.length > 150) history.shift(); historyIndex = history.length - 1;
