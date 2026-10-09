@@ -151,6 +151,8 @@
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     wordCountEl.textContent = words + (words === 1 ? ' word' : ' words');
     charCountEl.textContent = chars + (chars === 1 ? ' character' : ' characters');
+    const mins = Math.ceil(words / 200);
+    document.getElementById('readTime').textContent = words ? mins + (mins === 1 ? ' min read' : ' min read') : '0 min read';
   }
 
   // --- Selection preservation (important for toolbar clicks) ---
@@ -440,6 +442,7 @@
 
   // --- Paper input ---
   paper.addEventListener('input', () => {
+    if (findBar.classList.contains('open')) { clearHighlights(); runFind(); }
     scheduleSave();
     updateCounts();
     updateToolbarState();
