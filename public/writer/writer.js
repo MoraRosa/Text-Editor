@@ -26,7 +26,9 @@
   const tableModal = document.getElementById('tableModal');
 
   // --- Storage ---
-  const STORAGE_KEY = 'writer_doc_v1';
+  const STORAGE_KEY = 'writer_doc_v1'; // legacy single-doc key (migrated)
+  const DOCS_KEY = 'writer_docs_v1';
+  const CURRENT_KEY = 'writer_current_v1';
   const THEME_KEY = 'writer_theme_v1';
 
   let saveTimeout = null;
@@ -46,32 +48,89 @@
     else setTheme('theme-dark');
   }
 
-  // --- Load / save doc ---
+  // --- Load / save docs (multi-document, device-only) ---
+  function getDocs() {
+    try { return JSON.parse(localStorage.getItem(DOCS_KEY)) || {}; } catch (_) { return {}; }
+  }
+  function setDocs(d) {
+    localStorage.setItem(DOCS_KEY, JSON.stringify(d));
+  }
+  let currentId = null;
+  try { currentId = localStorage.getItem(CURRENT_KEY); } catch (_) {}
+
+  // Migrate the old single-document save, if any.
+  try {
+    const legacy = localStorage.getItem(STORAGE_KEY);
+    if (legacy) {
+      const data = JSON.parse(legacy);
+      const docs = getDocs();
+      const id = 'doc-' + Date.now();
+      docs[id] = { title: data.title || 'Untitled document', html: data.html || '', savedAt: data.savedAt || Date.now() };
+      setDocs(docs);
+      currentId = id;
+      localStorage.setItem(CURRENT_KEY, id);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } catch (_) {}
+
+  function ensureCurrentDoc() {
+    const docs = getDocs();
+    if (currentId && docs[currentId]) return;
+    const ids = Object.keys(docs);
+    if (ids.length) {
+      currentId = ids.sort((a, b) => (docs[b].savedAt || 0) - (docs[a].savedAt || 0))[0];
+    } else {
+      currentId = 'doc-' + Date.now();
+      docs[currentId] = { title: 'Untitled document', html: '', savedAt: Date.now() };
+      setDocs(docs);
+    }
+    try { localStorage.setItem(CURRENT_KEY, currentId); } catch (_) {}
+  }
+
+  function renderDocList() {
+    const docs = getDocs();
+    const select = document.getElementById('docSelect');
+    select.innerHTML = '';
+    Object.keys(docs)
+      .sort((a, b) => (docs[b].savedAt || 0) - (docs[a].savedAt || 0))
+      .forEach(id => {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = docs[id].title || 'Untitled document';
+        select.appendChild(opt);
+      });
+    select.value = currentId;
+  }
+
   function loadDoc() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        paper.innerHTML = sanitizeHtml(data.html || '', true);
-        docTitle.value = data.title || 'Untitled document';
-        return;
-      }
-    } catch (_) {}
-    paper.innerHTML = '';
-    docTitle.value = 'Untitled document';
+    ensureCurrentDoc();
+    const docs = getDocs();
+    const data = docs[currentId] || { title: 'Untitled document', html: '' };
+    paper.innerHTML = sanitizeHtml(data.html || '', true);
+    docTitle.value = data.title || 'Untitled document';
+    renderDocList();
   }
 
   function saveDoc() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        html: paper.innerHTML,
-        title: docTitle.value,
-        savedAt: Date.now()
-      }));
+      const docs = getDocs();
+      docs[currentId] = { html: paper.innerHTML, title: docTitle.value, savedAt: Date.now() };
+      setDocs(docs);
       setStatus('Saved');
     } catch (e) {
       setStatus('Storage full');
     }
+  }
+
+  function switchDoc(id) {
+    if (id === currentId) return;
+    saveDoc();
+    currentId = id;
+    try { localStorage.setItem(CURRENT_KEY, id); } catch (_) {}
+    history = []; historyIndex = -1; lastRange = null;
+    loadDoc();
+    record(); refreshPlaceholder(); updateCounts(); updateToolbarState();
+    setStatus('Saved on this device');
   }
 
   function setStatus(t) {
@@ -92,6 +151,8 @@
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     wordCountEl.textContent = words + (words === 1 ? ' word' : ' words');
     charCountEl.textContent = chars + (chars === 1 ? ' character' : ' characters');
+    const mins = Math.ceil(words / 200);
+    document.getElementById('readTime').textContent = words ? mins + (mins === 1 ? ' min read' : ' min read') : '0 min read';
   }
 
   // --- Selection preservation (important for toolbar clicks) ---
@@ -381,6 +442,7 @@
 
   // --- Paper input ---
   paper.addEventListener('input', () => {
+    if (findBar.classList.contains('open')) { clearHighlights(); runFind(); }
     scheduleSave();
     updateCounts();
     updateToolbarState();
@@ -561,8 +623,11 @@
   document.addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey;
     if (!mod || document.querySelector('.modal-overlay.active')) return;
-    if (e.key.toLowerCase() !== 's' && document.activeElement !== paper && !paper.contains(document.activeElement)) return;
     const k = e.key.toLowerCase();
+    if (k === 'f' && e.shiftKey) { e.preventDefault(); toggleFocus(); return; }
+    if (k === '/' ) { e.preventDefault(); openModal('shortcutModal'); return; }
+    if (k === 'f') { e.preventDefault(); openFind(); return; }
+    if (e.key.toLowerCase() !== 's' && document.activeElement !== paper && !paper.contains(document.activeElement)) return;
     if (k === 'b') { e.preventDefault(); exec('bold'); }
     else if (k === 'i') { e.preventDefault(); exec('italic'); }
     else if (k === 'u') { e.preventDefault(); exec('underline'); }
@@ -586,7 +651,9 @@
   let selectedImage = null, selectedTable = null;
   function record() {
     if (restoring) return;
-    const value = paper.innerHTML.replace(/ selected-image/g, '');
+    const clone = paper.cloneNode(true);
+    clone.querySelectorAll('mark[data-find]').forEach(m => m.replaceWith(...m.childNodes));
+    const value = clone.innerHTML.replace(/ selected-image/g, '');
     if (history[historyIndex] === value) return;
     history = history.slice(0, historyIndex + 1); history.push(value);
     if (history.length > 150) history.shift(); historyIndex = history.length - 1;
