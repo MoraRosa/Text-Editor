@@ -6,7 +6,23 @@
   <div class="topbar">
 <div class="brand"><svg viewBox="0 0 24 24"><path d="m4 17 1 4 4-1L21 8l-5-5L4 17Z"/><path d="m13 6 5 5M4 17l5 3"/></svg>Writer</div>
     <input class="doc-title" id="docTitle" aria-label="Document title" value="Untitled document" spellcheck="false">
+    <div class="doc-switcher">
+      <select class="editor-select" id="docSelect" aria-label="Your documents"></select>
+      <button class="btn icon" id="newDocBtn" aria-label="New document" title="New document">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="btn icon" id="deleteDocBtn" aria-label="Delete document" title="Delete document">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+    </div>
     <span class="spacer"></span>
+
+    <button class="btn icon" id="focusBtn" aria-label="Focus mode" title="Focus mode (Ctrl+Shift+F)">
+      <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    </button>
+    <button class="btn icon" id="helpBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (Ctrl+/)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>
 
     <!-- Save / Export menu -->
     <div class="menu-wrap">
@@ -163,12 +179,26 @@
          data-placeholder="Start writing…"></div>
   </div>
 
+  <!-- Find & replace bar -->
+  <div class="find-bar" id="findBar" role="search">
+    <input type="text" id="findInput" placeholder="Find" aria-label="Find text">
+    <span class="find-count" id="findCount"></span>
+    <button class="btn icon" id="findPrev" aria-label="Previous match" title="Previous match"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>
+    <button class="btn icon" id="findNext" aria-label="Next match" title="Next match"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <input type="text" id="replaceInput" placeholder="Replace with" aria-label="Replace with">
+    <button class="btn" id="replaceOne">Replace</button>
+    <button class="btn" id="replaceAll">All</button>
+    <button class="btn icon" id="findClose" aria-label="Close find" title="Close (Esc)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+
   <!-- Status bar -->
   <div class="status-bar">
     <span id="wordCount">0 words</span>
     <span id="charCount">0 characters</span>
+    <span id="readTime">0 min read</span>
     <span><span class="dot"></span><span id="saveStatus" role="status" aria-live="polite">Ready</span></span>
   </div>
+  <button class="focus-exit" id="focusExit">Exit focus mode (Esc)</button>
 </div>
 
 <!-- Link modal -->
