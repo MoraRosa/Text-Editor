@@ -616,7 +616,7 @@
   document.querySelectorAll('[data-close-modal]').forEach(b => {
     b.addEventListener('click', () => closeModal(b.dataset.closeModal));
   });
-  [linkModal, imageModal, tableModal, document.getElementById('dateModal')].forEach(m => {
+  [linkModal, imageModal, tableModal, document.getElementById('dateModal'), document.getElementById('shortcutModal')].forEach(m => {
     m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
   });
 
@@ -819,6 +819,134 @@
     speechSynthesis.speak(utter);
   });
   window.addEventListener('pagehide', () => { stopSpeaking(); if (dictating) stopDictation(); });
+
+  // --- Find & replace ---
+  const findBar = document.getElementById('findBar');
+  const findInput = document.getElementById('findInput');
+  const replaceInput = document.getElementById('replaceInput');
+  const findCount = document.getElementById('findCount');
+  let findMatches = [], findIndex = -1;
+
+  function openFind() {
+    findBar.classList.add('open');
+    const sel = window.getSelection();
+    if (sel && sel.toString() && paper.contains(sel.anchorNode)) findInput.value = sel.toString();
+    findInput.focus();
+    findInput.select();
+    runFind();
+  }
+  function closeFind() {
+    findBar.classList.remove('open');
+    clearHighlights();
+    paper.focus();
+  }
+  function clearHighlights() {
+    paper.querySelectorAll('mark[data-find]').forEach(m => m.replaceWith(...m.childNodes));
+    paper.normalize();
+    findMatches = []; findIndex = -1;
+    findCount.textContent = '';
+  }
+  function runFind() {
+    clearHighlights();
+    const q = findInput.value;
+    if (!q) return;
+    const ql = q.toLowerCase();
+    const walker = document.createTreeWalker(paper, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    for (const node of nodes) {
+      let idx = node.data.toLowerCase().indexOf(ql);
+      while (idx !== -1) {
+        const r = document.createRange();
+        r.setStart(node, idx);
+        r.setEnd(node, idx + q.length);
+        const mark = document.createElement('mark');
+        mark.setAttribute('data-find', '');
+        try { r.surroundContents(mark); } catch (_) { break; }
+        findMatches.push(mark);
+        idx = node.data.toLowerCase().indexOf(ql, idx + q.length);
+      }
+    }
+    if (findMatches.length) { findIndex = 0; highlightCurrent(); }
+    findCount.textContent = findMatches.length ? findMatches.length + ' found' : 'None';
+  }
+  function highlightCurrent() {
+    findMatches.forEach(m => m.classList.remove('current'));
+    const m = findMatches[findIndex];
+    if (!m) return;
+    m.classList.add('current');
+    m.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    findCount.textContent = (findIndex + 1) + ' of ' + findMatches.length;
+  }
+  function stepFind(dir) {
+    if (!findMatches.length) return;
+    findIndex = (findIndex + dir + findMatches.length) % findMatches.length;
+    highlightCurrent();
+  }
+  findInput.addEventListener('input', runFind);
+  findInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); stepFind(e.shiftKey ? -1 : 1); }
+    if (e.key === 'Escape') closeFind();
+  });
+  replaceInput.addEventListener('keydown', e => { if (e.key === 'Escape') closeFind(); });
+  document.getElementById('findNext').addEventListener('click', () => stepFind(1));
+  document.getElementById('findPrev').addEventListener('click', () => stepFind(-1));
+  document.getElementById('findClose').addEventListener('click', closeFind);
+  document.getElementById('replaceOne').addEventListener('click', () => {
+    const m = findMatches[findIndex];
+    if (!m) return;
+    m.replaceWith(document.createTextNode(replaceInput.value));
+    runFind();
+    changed();
+  });
+  document.getElementById('replaceAll').addEventListener('click', () => {
+    if (!findMatches.length) return;
+    findMatches.forEach(m => m.replaceWith(document.createTextNode(replaceInput.value)));
+    clearHighlights();
+    runFind();
+    changed();
+  });
+
+  // --- Focus mode ---
+  function toggleFocus(force) {
+    const on = force !== undefined ? force : !app.classList.contains('focus-mode');
+    app.classList.toggle('focus-mode', on);
+    document.getElementById('focusBtn').setAttribute('aria-pressed', String(on));
+    if (on) paper.focus();
+  }
+  document.getElementById('focusBtn').addEventListener('click', () => toggleFocus());
+  document.getElementById('focusExit').addEventListener('click', () => toggleFocus(false));
+
+  // --- Document switcher ---
+  document.getElementById('docSelect').addEventListener('change', e => switchDoc(e.target.value));
+  document.getElementById('newDocBtn').addEventListener('click', () => {
+    saveDoc();
+    const docs = getDocs();
+    const id = 'doc-' + Date.now();
+    docs[id] = { title: 'Untitled document', html: '', savedAt: Date.now() };
+    setDocs(docs);
+    switchDoc(id);
+    docTitle.focus();
+    docTitle.select();
+  });
+  document.getElementById('deleteDocBtn').addEventListener('click', () => {
+    const docs = getDocs();
+    const name = docs[currentId]?.title || 'Untitled document';
+    if (!window.confirm('Delete "' + name + '"? This cannot be undone.')) return;
+    delete docs[currentId];
+    setDocs(docs);
+    currentId = null;
+    ensureCurrentDoc();
+    history = []; historyIndex = -1; lastRange = null;
+    loadDoc();
+    record(); refreshPlaceholder(); updateCounts(); updateToolbarState();
+    setStatus('Document deleted');
+  });
+  docTitle.addEventListener('input', renderDocList);
+
+  // --- Shortcuts modal ---
+  document.getElementById('helpBtn').addEventListener('click', () => openModal('shortcutModal'));
 
   // --- Init ---
   loadTheme();
