@@ -1,6 +1,5 @@
 
 (function () {
-  // Feature block marker (find/replace, focus, docs) is defined before init below.
   'use strict';
 
   // --- DOM refs ---
@@ -114,8 +113,10 @@
 
   function saveDoc() {
     try {
+      const clone = paper.cloneNode(true);
+      clone.querySelectorAll('mark[data-find]').forEach(m => m.replaceWith(...m.childNodes));
       const docs = getDocs();
-      docs[currentId] = { html: paper.innerHTML, title: docTitle.value, savedAt: Date.now() };
+      docs[currentId] = { html: clone.innerHTML, title: docTitle.value, savedAt: Date.now() };
       setDocs(docs);
       setStatus('Saved');
     } catch (e) {
