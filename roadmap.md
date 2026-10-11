@@ -7,6 +7,7 @@
 
 ## Pending
 - [x] Add mic dictation (Web Speech API) and read-aloud (speechSynthesis) — free browser APIs, agreed plan.
-- [ ] Enterprise polish ideas (waiting on user's pick): focus mode, shortcut overlay, multi-doc switcher, find & replace, reading time estimate.
+- [x] Enterprise polish: focus mode, shortcut overlay, multi-doc switcher (new/rename/delete), find & replace, reading time estimate.
+- [ ] Yap list: image drag/resize handles, table column resize, indent/outdent buttons, quote style review, table header-row option, delete-row/column buttons.
 - [ ] Move editor to GitHub and set up GitHub Pages (user's call tomorrow).
 - [ ] Evaluate PWA support (user undecided).

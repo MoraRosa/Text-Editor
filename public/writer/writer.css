@@ -658,3 +658,75 @@
   50% { box-shadow: 0 0 0 5px transparent; }
 }
 .tool:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Document switcher ---- */
+.doc-switcher { display: flex; align-items: center; gap: 4px; }
+.doc-switcher .editor-select { max-width: 180px; }
+.btn.icon { padding: 6px; }
+.btn.icon svg { width: 16px; height: 16px; }
+
+/* ---- Find & replace bar ---- */
+.find-bar {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  z-index: 5;
+}
+.find-bar.open { display: flex; }
+.find-bar input {
+  font: inherit;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 5px 8px;
+  outline: none;
+  width: 160px;
+}
+.find-bar input:focus { border-color: var(--accent); }
+.find-count { font-size: 12px; color: var(--text-secondary); min-width: 56px; }
+.find-bar .btn { font-size: 13px; padding: 5px 10px; }
+mark[data-find] { background: var(--accent); color: var(--bg-primary); border-radius: 2px; }
+mark[data-find].current { outline: 2px solid var(--accent-hover); }
+
+/* ---- Focus mode ---- */
+.focus-mode .topbar,
+.focus-mode .toolbar,
+.focus-mode .status-bar,
+.focus-mode .find-bar { display: none; }
+.focus-exit {
+  display: none;
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity .15s;
+  z-index: 20;
+}
+.focus-exit:hover { opacity: 1; }
+.focus-mode .focus-exit { display: block; }
+
+/* ---- Shortcuts modal ---- */
+.shortcut-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.shortcut-list > div { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+.shortcut-list span { margin-left: auto; color: var(--text-primary); }
+.shortcut-list kbd {
+  font: inherit;
+  font-size: 11px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
