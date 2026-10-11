@@ -796,6 +796,29 @@
 
   // --- Read aloud (text to speech) ---
   let speaking = false;
+  let preferredVoice = null;
+  function pickBestVoice() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return;
+    const lang = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    const score = v => {
+      let s = 0;
+      if (v.lang && v.lang.toLowerCase().startsWith(lang)) s += 10;
+      const n = v.name.toLowerCase();
+      if (n.includes('natural') || n.includes('neural') || n.includes('premium') || n.includes('enhanced')) s += 8;
+      if (n.includes('google')) s += 6;
+      if (n.includes('samantha') || n.includes('aria') || n.includes('jenny') || n.includes('zira')) s += 4;
+      if (v.default) s += 2;
+      if (n.includes('compact') || n.includes('espeak')) s -= 5;
+      return s;
+    };
+    preferredVoice = voices.slice().sort((a, b) => score(b) - score(a))[0] || null;
+  }
+  if ('speechSynthesis' in window) {
+    pickBestVoice();
+    speechSynthesis.addEventListener('voiceschanged', pickBestVoice);
+  }
   if (!('speechSynthesis' in window)) {
     speakBtn.disabled = true;
     speakBtn.title = 'Read aloud is not supported in this browser';
