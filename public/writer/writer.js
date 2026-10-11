@@ -118,6 +118,7 @@
       const docs = getDocs();
       docs[currentId] = { html: clone.innerHTML, title: docTitle.value, savedAt: Date.now() };
       setDocs(docs);
+      renderDocList();
       setStatus('Saved');
     } catch (e) {
       setStatus('Storage full');
@@ -862,16 +863,18 @@
     let n;
     while ((n = walker.nextNode())) nodes.push(n);
     for (const node of nodes) {
-      let idx = node.data.toLowerCase().indexOf(ql);
-      while (idx !== -1) {
+      let current = node;
+      while (current && current.nodeType === 3) {
+        const idx = current.data.toLowerCase().indexOf(ql);
+        if (idx === -1) break;
         const r = document.createRange();
-        r.setStart(node, idx);
-        r.setEnd(node, idx + q.length);
+        r.setStart(current, idx);
+        r.setEnd(current, idx + q.length);
         const mark = document.createElement('mark');
         mark.setAttribute('data-find', '');
         try { r.surroundContents(mark); } catch (_) { break; }
         findMatches.push(mark);
-        idx = node.data.toLowerCase().indexOf(ql, idx + q.length);
+        current = mark.nextSibling;
       }
     }
     if (findMatches.length) { findIndex = 0; highlightCurrent(); }
