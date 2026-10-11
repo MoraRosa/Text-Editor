@@ -839,6 +839,7 @@
     if (!text) { setStatus('Nothing to read'); return; }
     if (dictating) stopDictation();
     const utter = new SpeechSynthesisUtterance(text);
+    if (preferredVoice) utter.voice = preferredVoice;
     utter.rate = 1;
     utter.addEventListener('end', () => { stopSpeaking(); setStatus('Saved'); });
     utter.addEventListener('error', () => { stopSpeaking(); setStatus('Saved'); });
