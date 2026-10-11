@@ -719,7 +719,12 @@
   });
   document.addEventListener('keydown', e => {
     const modal = document.querySelector('.modal-overlay.active');
-    if (e.key === 'Escape') { closeAllMenus(); if (modal) closeModal(modal.id); }
+    if (e.key === 'Escape') {
+      closeAllMenus();
+      if (modal) closeModal(modal.id);
+      else if (findBar.classList.contains('open')) closeFind();
+      else if (app.classList.contains('focus-mode')) toggleFocus(false);
+    }
     if (modal && e.key === 'Tab') {
       const controls = Array.from(modal.querySelectorAll('button,input,select')).filter(el => !el.disabled); const first=controls[0], last=controls[controls.length-1];
       if (e.shiftKey && document.activeElement === first) {e.preventDefault();last.focus();} else if (!e.shiftKey && document.activeElement === last) {e.preventDefault();first.focus();}
