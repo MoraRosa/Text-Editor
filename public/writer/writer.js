@@ -1,5 +1,6 @@
 
 (function () {
+  // Feature block marker (find/replace, focus, docs) is defined before init below.
   'use strict';
 
   // --- DOM refs ---
