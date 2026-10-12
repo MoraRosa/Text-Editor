@@ -830,12 +830,27 @@
     speakBtn.classList.remove('listening');
     speakBtn.setAttribute('aria-pressed', 'false');
   }
-  speakBtn.addEventListener('mousedown', e => e.preventDefault());
-  speakBtn.addEventListener('click', () => {
+  function toggleSpeak() {
+    if (!('speechSynthesis' in window)) return;
     if (speaking) { stopSpeaking(); setStatus('Saved'); return; }
     const sel = window.getSelection();
-    const selected = sel && sel.rangeCount && paper.contains(sel.getRangeAt(0).commonAncestorContainer) ? sel.toString().trim() : '';
-    const text = selected || (paper.innerText || '').trim();
+    let text = '', mode = 'document';
+    if (sel && sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      if (paper.contains(range.commonAncestorContainer)) {
+        if (!range.collapsed) {
+          text = sel.toString().trim();
+          mode = 'selection';
+        } else {
+          const r = range.cloneRange();
+          r.selectNodeContents(paper);
+          r.setStart(range.startContainer, range.startOffset);
+          text = r.toString().trim();
+          if (text) mode = 'cursor';
+        }
+      }
+    }
+    if (!text && mode !== 'cursor') text = (paper.innerText || '').trim();
     if (!text) { setStatus('Nothing to read'); return; }
     if (dictating) stopDictation();
     const utter = new SpeechSynthesisUtterance(text);
@@ -846,9 +861,11 @@
     speaking = true;
     speakBtn.classList.add('listening');
     speakBtn.setAttribute('aria-pressed', 'true');
-    setStatus(selected ? 'Reading selection…' : 'Reading document…');
+    setStatus(mode === 'selection' ? 'Reading selection…' : mode === 'cursor' ? 'Reading from cursor…' : 'Reading document…');
     speechSynthesis.speak(utter);
-  });
+  }
+  speakBtn.addEventListener('mousedown', e => e.preventDefault());
+  speakBtn.addEventListener('click', toggleSpeak);
   window.addEventListener('pagehide', () => { stopSpeaking(); if (dictating) stopDictation(); });
 
   // --- Find & replace ---
