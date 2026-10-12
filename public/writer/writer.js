@@ -628,6 +628,7 @@
     if (!mod || document.querySelector('.modal-overlay.active')) return;
     const k = e.key.toLowerCase();
     if (k === 'f' && e.shiftKey) { e.preventDefault(); toggleFocus(); return; }
+    if (k === 'l' && e.shiftKey) { e.preventDefault(); toggleSpeak(); return; }
     if (k === '/' ) { e.preventDefault(); openModal('shortcutModal'); return; }
     if (k === 'f') { e.preventDefault(); openFind(); return; }
     if (e.key.toLowerCase() !== 's' && document.activeElement !== paper && !paper.contains(document.activeElement)) return;
