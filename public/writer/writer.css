@@ -730,3 +730,21 @@ mark[data-find].current { outline: 2px solid var(--accent-hover); }
   border-radius: 4px;
   padding: 2px 6px;
 }
+
+/* ---- Toolbar: one scrolling row, expandable, collapsible ---- */
+.toolbar-wrap { display:flex; align-items:stretch; flex-shrink:0; background:var(--bg-secondary); border-bottom:1px solid var(--border-color); position:relative; z-index:5; }
+.toolbar-wrap .toolbar { flex:1; min-width:0; border-bottom:0; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
+.toolbar-wrap .toolbar::-webkit-scrollbar { height:4px; }
+.toolbar-wrap .toolbar::-webkit-scrollbar-thumb { background:var(--border-color); border-radius:4px; }
+.toolbar .tool-group { flex-shrink:0; scroll-snap-align:start; }
+.toolbar .tooltip { display:none; }
+.toolbar.expanded { flex-wrap:wrap; overflow:visible; row-gap:6px; }
+.toolbar.expanded .tooltip { display:revert; }
+.toolbar-expand { flex-shrink:0; align-self:center; margin:0 8px; border-left:1px solid var(--border-color); border-radius:0; }
+.toolbar-expand svg { transition:transform .2s; }
+.toolbar-wrap:has(.toolbar.expanded) .toolbar-expand svg { transform:rotate(180deg); }
+.toolbar-wrap:has(.toolbar.collapsed) { display:none; }
+#toolbarToggle[aria-pressed="true"] { color:var(--accent); }
+.style-menu { position:fixed; z-index:40; }
+.focus-mode .toolbar-wrap { display:none; }
+@media print { .toolbar-wrap { display:none !important; } }
