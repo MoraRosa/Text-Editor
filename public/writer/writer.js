@@ -694,6 +694,27 @@
   document.getElementById('addRow').addEventListener('click', () => { if (!selectedTable) return; const row = selectedTable.insertRow(); for (let i=0;i<selectedTable.rows[0].cells.length;i++) row.insertCell().innerHTML = '<br>'; placeCaret(row.cells[0]); changed(); });
   document.getElementById('addColumn').addEventListener('click', () => { if (!selectedTable) return; Array.from(selectedTable.rows).forEach(row => row.insertCell().innerHTML = '<br>'); changed(); });
   document.getElementById('deleteTable').addEventListener('click', () => { selectedTable?.remove(); selectedTable = null; lastRange = null; changed(); contextTools(); });
+  const currentCell = () => {
+    const node = (lastRange ? lastRange.startContainer : window.getSelection().anchorNode);
+    const el = node?.nodeType === 1 ? node : node?.parentElement;
+    return el?.closest?.('td,th') || null;
+  };
+  document.getElementById('deleteRow').addEventListener('click', () => {
+    if (!selectedTable) return;
+    const cell = currentCell();
+    const row = cell ? cell.parentElement : selectedTable.rows[selectedTable.rows.length - 1];
+    row.remove();
+    if (!selectedTable.rows.length) { selectedTable.remove(); selectedTable = null; lastRange = null; contextTools(); }
+    changed();
+  });
+  document.getElementById('deleteColumn').addEventListener('click', () => {
+    if (!selectedTable) return;
+    const cell = currentCell();
+    const idx = cell ? cell.cellIndex : selectedTable.rows[0].cells.length - 1;
+    Array.from(selectedTable.rows).forEach(row => { if (row.cells[idx]) row.cells[idx].remove(); });
+    if (!selectedTable.rows[0]?.cells.length) { selectedTable.remove(); selectedTable = null; lastRange = null; contextTools(); }
+    changed();
+  });
   paper.addEventListener('keydown', e => {
     if (e.target.matches('input[type="checkbox"]')) return;
     const el = selectionElement(); const cell = el?.closest('td,th'); const li = el?.closest('.checklist li');
