@@ -10,4 +10,4 @@
 - [x] Enterprise polish: focus mode, shortcut overlay, multi-doc switcher (new/rename/delete), find & replace, reading time estimate.
 - [ ] Yap list: image drag/resize handles, table column resize, quote style review, table header-row option. (indent/outdent + delete row/col done)
 - [ ] Move editor to GitHub and set up GitHub Pages (user's call tomorrow).
-- [ ] Evaluate PWA support (user undecided).
+- [ ] Evaluate PWA support (user undecided).- [x] Toolbar: horizontal scroll row, expand to show all, hide/show toggle
