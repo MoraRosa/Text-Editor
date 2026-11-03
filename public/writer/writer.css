@@ -748,3 +748,5 @@ mark[data-find].current { outline: 2px solid var(--accent-hover); }
 .style-menu { position:fixed; z-index:40; }
 .focus-mode .toolbar-wrap { display:none; }
 @media print { .toolbar-wrap { display:none !important; } }
+#toolbarExpand[aria-pressed="true"] svg { transform:rotate(180deg); }
+@media (max-width:640px) { .topbar { overflow-x:auto; scrollbar-width:none; } .topbar::-webkit-scrollbar { display:none; } .topbar > * { flex-shrink:0; } }
