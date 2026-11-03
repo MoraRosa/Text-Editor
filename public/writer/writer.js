@@ -234,22 +234,17 @@
   });
   // --- Toolbar: scroll row / expanded / collapsed ---
   const toolbarEl = document.getElementById('toolbar');
-  const tbExpand = document.getElementById('toolbarExpand');
   const tbToggle = document.getElementById('toolbarToggle');
   const TB_KEY = 'writer_toolbar_v1';
   function applyTb(mode) {
-    toolbarEl.classList.toggle('expanded', mode === 'expanded');
     toolbarEl.classList.toggle('collapsed', mode === 'collapsed');
-    tbExpand.setAttribute('aria-pressed', mode === 'expanded');
     tbToggle.setAttribute('aria-pressed', mode === 'collapsed');
-    tbExpand.title = mode === 'expanded' ? 'Show tools in one scrolling row' : 'Show all tools';
     tbToggle.title = mode === 'collapsed' ? 'Show toolbar' : 'Hide toolbar';
     try { localStorage.setItem(TB_KEY, mode); } catch (_) {}
   }
   let tbMode = 'row';
-  try { tbMode = localStorage.getItem(TB_KEY) || 'row'; } catch (_) {}
+  try { tbMode = localStorage.getItem(TB_KEY) === 'collapsed' ? 'collapsed' : 'row'; } catch (_) {}
   applyTb(tbMode);
-  tbExpand.addEventListener('click', () => { tbMode = tbMode === 'expanded' ? 'row' : 'expanded'; applyTb(tbMode); });
   tbToggle.addEventListener('click', () => { tbMode = tbMode === 'collapsed' ? 'row' : 'collapsed'; applyTb(tbMode); });
   toolbarEl.addEventListener('scroll', () => styleMenu.classList.remove('open'));
   toolbarEl.addEventListener('wheel', e => {
