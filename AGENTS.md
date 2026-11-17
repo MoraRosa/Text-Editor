@@ -12,3 +12,5 @@
 - Keep the editor as standalone HTML, CSS, and JavaScript under public/writer; the required TanStack index only embeds it so editor behavior has no framework or backend dependency.
 - Define editor appearance and theme colors in writer.css; use its shared control classes and tokens throughout the vanilla editor.
 - Store drafts locally and sanitize both pasted and restored HTML, because this editor is deliberately device-only with no Cloud connection.
+
+- Offline support for the editor is a small hand-written service worker (public/writer/sw.js, registered from extras.js with preview/iframe/localhost guards) because the editor ships as plain static files with no build step; bump its VERSION when core files change.

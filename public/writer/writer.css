@@ -752,3 +752,19 @@ mark[data-find].current { outline: 2px solid var(--accent-hover); }
 @media (max-width:640px) { .topbar { overflow-x:auto; scrollbar-width:none; } .topbar::-webkit-scrollbar { display:none; } .topbar > * { flex-shrink:0; } }
 .toolbar-wrap .toolbar { scrollbar-width:none; -ms-overflow-style:none; }
 .toolbar-wrap .toolbar::-webkit-scrollbar { display:none; height:0; }
+
+  /* ---- Native pickers follow the theme ---- */
+  .theme-dark { color-scheme: dark; }
+  .theme-light, .theme-pink, .theme-sky, .theme-emerald { color-scheme: light; }
+  input[type="date"] {
+    accent-color: var(--accent);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border, var(--bg-hover));
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+  }
+  input[type="date"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .75; }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
