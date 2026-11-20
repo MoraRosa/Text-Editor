@@ -63,3 +63,33 @@
   }
   window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
 })();
+
+/* Toolbar up/down + floating top-bar menus */
+(function () {
+  const app = document.querySelector('.app'), btn = document.getElementById('tbPosBtn');
+  const KEY = 'writer_toolbar_pos';
+  function apply(bottom) {
+    app.classList.toggle('toolbar-bottom', bottom);
+    btn.setAttribute('aria-pressed', String(bottom));
+    btn.setAttribute('aria-label', bottom ? 'Move toolbar to top' : 'Move toolbar to bottom');
+  }
+  let saved = null; try { saved = localStorage.getItem(KEY); } catch (_) {}
+  apply(saved ? saved === 'bottom' : window.matchMedia('(max-width: 640px)').matches);
+  btn.addEventListener('click', () => {
+    const b = !app.classList.contains('toolbar-bottom'); apply(b);
+    try { localStorage.setItem(KEY, b ? 'bottom' : 'top'); } catch (_) {}
+  });
+
+  function place(menu, trigger) {
+    if (!menu.classList.contains('open')) return;
+    menu.classList.add('floating');
+    const r = trigger.getBoundingClientRect(), w = menu.offsetWidth || 200;
+    menu.style.top = (r.bottom + 6) + 'px';
+    menu.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w)) + 'px';
+    menu.style.right = 'auto';
+  }
+  [['themeBtn', 'themeMenu'], ['saveMenuBtn', 'saveMenu']].forEach(([b, m]) => {
+    const t = document.getElementById(b), menu = document.getElementById(m);
+    if (t && menu) t.addEventListener('click', () => requestAnimationFrame(() => place(menu, t)));
+  });
+})();

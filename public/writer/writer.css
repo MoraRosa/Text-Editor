@@ -768,3 +768,20 @@ mark[data-find].current { outline: 2px solid var(--accent-hover); }
   input[type="date"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .75; }
   input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+/* ---- Toolbar position (top or bottom) ---- */
+.app.toolbar-bottom .toolbar-wrap { order: 3; border-top: 1px solid var(--border, var(--bg-hover)); }
+.app.toolbar-bottom .status-bar { order: 4; }
+.app.toolbar-bottom .page-scroll { order: 2; }
+#tbPosBtn svg { transition: transform .25s; }
+.app.toolbar-bottom #tbPosBtn svg { transform: rotate(180deg); }
+/* Top-bar menus float above so the sideways-scrolling bar can't clip them */
+.topbar .menu.floating { position: fixed; z-index: 60; }
+
+/* Phones: keep the theme picker in reach */
+@media (max-width:640px) {
+  .brand { font-size:0; padding-right:4px; }
+  .brand svg { width:22px; height:22px; }
+  #saveMenuBtn { font-size:0; gap:0; padding:8px 10px; }
+  .topbar .menu-wrap:last-child { position:sticky; right:0; background:var(--bg-primary); padding-left:6px; box-shadow:-10px 0 12px -6px var(--bg-primary); }
+}
