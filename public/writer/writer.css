@@ -783,5 +783,4 @@ mark[data-find].current { outline: 2px solid var(--accent-hover); }
   .brand { font-size:0; padding-right:4px; }
   .brand svg { width:22px; height:22px; }
   #saveMenuBtn { font-size:0; gap:0; padding:8px 10px; }
-  .topbar .menu-wrap:last-child { position:sticky; right:0; background:var(--bg-primary); padding-left:6px; box-shadow:-10px 0 12px -6px var(--bg-primary); }
 }
