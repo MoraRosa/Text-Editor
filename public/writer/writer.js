@@ -512,7 +512,7 @@
   }
   function sanitizeHtml(html, local = false) {
     const tmp = document.createElement('template'); tmp.innerHTML = html;
-    const allowed = new Set('P BR B STRONG I EM U S STRIKE DEL H1 H2 H3 UL OL LI BLOCKQUOTE A IMG HR TABLE THEAD TBODY TR TD TH SPAN DIV INPUT'.split(' '));
+    const allowed = new Set('P BR B STRONG I EM U S STRIKE DEL H1 H2 H3 UL OL LI BLOCKQUOTE A IMG HR TABLE COLGROUP COL THEAD TBODY TR TD TH SPAN DIV INPUT'.split(' '));
     function walk(node) {
       if (node.nodeType !== 1) return;
       if (['SCRIPT','STYLE','IFRAME','OBJECT','SVG','MATH','FORM','BUTTON'].includes(node.tagName)) { node.remove(); return; }
@@ -527,7 +527,7 @@
         if (node.tagName === 'INPUT') { if (node.type !== 'checkbox') { node.remove(); return; } attrs.type = 'checkbox'; attrs.contenteditable = 'false'; attrs.tabindex = '0'; attrs['aria-label'] = 'Complete task'; if (node.hasAttribute('checked')) attrs.checked = ''; }
         const style = node.style;
         const values = {};
-        for (const k of ['textAlign','fontWeight','fontStyle','textDecoration','width','marginLeft','marginRight','display']) if (style[k] && /^[a-z0-9%. ()-]+$/i.test(style[k])) values[k] = style[k];
+        for (const k of ['textAlign','fontWeight','fontStyle','textDecoration','width','marginLeft','marginRight','display','tableLayout']) if (style[k] && /^[a-z0-9%. ()-]+$/i.test(style[k])) values[k] = style[k];
         Array.from(node.attributes).forEach(a => node.removeAttribute(a.name)); Object.assign(node.style, values);
       } else { if (node.tagName === 'INPUT') { node.remove(); return; } Array.from(node.attributes).forEach(a => node.removeAttribute(a.name)); }
       for (const [k,v] of Object.entries(attrs)) node.setAttribute(k,v);
@@ -698,10 +698,11 @@
   function placeCaret(node, end = false) { const r = document.createRange(); r.selectNodeContents(node); r.collapse(!end); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); paper.focus(); lastRange = r.cloneRange(); }
   function selectionElement() { const node = getSelection()?.anchorNode; return node?.nodeType === 1 ? node : node?.parentElement; }
   function contextTools() {
-    selectedTable = selectionElement()?.closest('table');
+    if (!tableGesture && !tableHandles.contains(document.activeElement)) selectedTable = selectionElement()?.closest('table');
     document.getElementById('tableTools').classList.toggle('visible', !!selectedTable && paper.contains(selectedTable));
     document.getElementById('imageTools').classList.toggle('visible', !!selectedImage && paper.contains(selectedImage));
     positionImageHandles();
+    positionTableHandles();
   }
   document.addEventListener('selectionchange', contextTools);
   paper.addEventListener('click', e => {
@@ -859,7 +860,16 @@
     selectedImage?.classList.remove('selected-image'); selectedImage = null; contextTools();
   });
   document.getElementById('addRow').addEventListener('click', () => { if (!selectedTable) return; const row = selectedTable.insertRow(); for (let i=0;i<selectedTable.rows[0].cells.length;i++) row.insertCell().innerHTML = '<br>'; placeCaret(row.cells[0]); changed(); });
-  document.getElementById('addColumn').addEventListener('click', () => { if (!selectedTable) return; Array.from(selectedTable.rows).forEach(row => row.insertCell().innerHTML = '<br>'); changed(); });
+  document.getElementById('addColumn').addEventListener('click', () => {
+    if (!selectedTable) return;
+    const cols = tableColumns(selectedTable);
+    if (cols.length) {
+      const scale = cols.length/(cols.length+1);
+      cols.forEach(c => c.style.width = (parseFloat(c.style.width)*scale)+'%');
+      const col = document.createElement('col'); col.style.width = (100/(cols.length+1))+'%'; cols[0].parentElement.append(col);
+    }
+    Array.from(selectedTable.rows).forEach(row => row.insertCell().innerHTML = '<br>'); changed();
+  });
   document.getElementById('deleteTable').addEventListener('click', () => { selectedTable?.remove(); selectedTable = null; lastRange = null; changed(); contextTools(); });
   const currentCell = () => {
     const node = (lastRange ? lastRange.startContainer : window.getSelection().anchorNode);
@@ -878,10 +888,92 @@
     if (!selectedTable) return;
     const cell = currentCell();
     const idx = cell ? cell.cellIndex : selectedTable.rows[0].cells.length - 1;
+    const cols = tableColumns(selectedTable);
+    if (cols[idx]) { cols[idx].remove(); const remaining = tableColumns(selectedTable); const total = remaining.reduce((sum,c) => sum+parseFloat(c.style.width),0); remaining.forEach(c => c.style.width = (parseFloat(c.style.width)/total*100)+'%'); }
     Array.from(selectedTable.rows).forEach(row => { if (row.cells[idx]) row.cells[idx].remove(); });
     if (!selectedTable.rows[0]?.cells.length) { selectedTable.remove(); selectedTable = null; lastRange = null; contextTools(); }
     changed();
   });
+  // Column widths are document data; draggable controls are not.
+  const tableHandles = document.createElement('div'); tableHandles.className = 'table-handles'; app.append(tableHandles);
+  let tableGesture = null;
+  function tableColumns(table) { return [...(table.querySelector(':scope > colgroup')?.children || [])]; }
+  function simpleTable(table) {
+    const count = table.rows[0]?.cells.length || 0;
+    return count > 1 && [...table.rows].every(row => row.cells.length === count && [...row.cells].every(c => c.colSpan === 1 && c.rowSpan === 1));
+  }
+  function positionTableHandles() {
+    const table = selectedTable;
+    if (!table || !paper.contains(table) || !simpleTable(table)) { tableHandles.replaceChildren(); return; }
+    const rect = table.getBoundingClientRect(), view = pageScroll.getBoundingClientRect();
+    if (rect.bottom <= view.top || rect.top >= view.bottom || !rect.width) { tableHandles.replaceChildren(); return; }
+    const count = table.rows[0].cells.length-1;
+    if (tableHandles.children.length !== count) {
+      tableHandles.replaceChildren();
+      for (let i=0;i<count;i++) {
+        const handle = document.createElement('button'); handle.type = 'button'; handle.className = 'tool table-column-handle';
+        handle.dataset.column = String(i); handle.setAttribute('aria-label', 'Resize column '+(i+1)); handle.title = 'Drag column edge'; tableHandles.append(handle);
+      }
+    }
+    const top = Math.max(rect.top,view.top), bottom = Math.min(rect.bottom,view.bottom);
+    [...tableHandles.children].forEach((handle,i) => {
+      const cell = table.rows[0].cells[i].getBoundingClientRect();
+      Object.assign(handle.style,{left:(cell.right-12)+'px',top:top+'px',height:(bottom-top)+'px'});
+    });
+  }
+  function ensureTableColumns(table) {
+    let cols = tableColumns(table);
+    if (cols.length !== table.rows[0].cells.length) {
+      table.querySelector(':scope > colgroup')?.remove();
+      const group = document.createElement('colgroup'), total = table.getBoundingClientRect().width;
+      for (const cell of table.rows[0].cells) {
+        const col = document.createElement('col'); col.style.width = (cell.getBoundingClientRect().width/total*100)+'%'; group.append(col);
+      }
+      table.prepend(group); cols = [...group.children];
+    }
+    table.style.tableLayout = 'fixed'; return cols;
+  }
+  function resizeTablePair(table, index, delta, widths) {
+    const cols = ensureTableColumns(table), total = table.getBoundingClientRect().width;
+    const left = widths[index], right = widths[index+1];
+    if (!cols[index] || !cols[index+1] || !total || !left || !right) return;
+    const min = Math.min(48,(left+right)/3), shift = Math.max(min-left,Math.min(right-min,delta));
+    cols[index].style.width = ((left+shift)/total*100)+'%'; cols[index+1].style.width = ((right-shift)/total*100)+'%';
+    positionTableHandles(); positionImageHandles();
+  }
+  tableHandles.addEventListener('pointerdown', e => {
+    const handle = e.target.closest('button'); if (!handle || e.button !== 0 || !selectedTable || !paper.contains(selectedTable)) return;
+    e.preventDefault(); e.stopPropagation(); record();
+    const table = selectedTable;
+    tableGesture = {table,index:+handle.dataset.column,x:e.clientX,widths:[...table.rows[0].cells].map(c=>c.getBoundingClientRect().width),
+      before:table.innerHTML,layout:table.style.tableLayout,handle,pointerId:e.pointerId,moved:false};
+    handle.setPointerCapture(e.pointerId); app.classList.add('table-resizing');
+  });
+  document.addEventListener('pointermove', e => {
+    const g = tableGesture; if (!g || g.pointerId !== e.pointerId) return;
+    if (!paper.contains(g.table)) { finishTableResize(true); return; }
+    e.preventDefault(); if (Math.abs(e.clientX-g.x)<2 && !g.moved) return;
+    g.moved = true; resizeTablePair(g.table,g.index,e.clientX-g.x,g.widths);
+  },{passive:false});
+  function finishTableResize(cancel = false) {
+    const g = tableGesture; if (!g) return;
+    if (cancel && g.moved) { g.table.innerHTML = g.before; g.table.style.tableLayout = g.layout; }
+    if (g.handle.hasPointerCapture(g.pointerId)) g.handle.releasePointerCapture(g.pointerId);
+    tableGesture = null; app.classList.remove('table-resizing');
+    if (!cancel && g.moved) changed(); positionTableHandles();
+  }
+  document.addEventListener('pointerup', e => { if (tableGesture?.pointerId === e.pointerId) finishTableResize(); });
+  document.addEventListener('pointercancel', () => finishTableResize(true));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && tableGesture) { e.preventDefault(); finishTableResize(true); } });
+  tableHandles.addEventListener('keydown', e => {
+    if (!['ArrowLeft','ArrowRight'].includes(e.key) || !selectedTable || !e.target.dataset.column) return;
+    e.preventDefault(); record();
+    resizeTablePair(selectedTable,+e.target.dataset.column,(e.key === 'ArrowRight' ? 1 : -1)*(e.shiftKey ? 20 : 5),[...selectedTable.rows[0].cells].map(c=>c.getBoundingClientRect().width));
+    changed();
+  });
+  new ResizeObserver(positionTableHandles).observe(paper);
+  new MutationObserver(positionTableHandles).observe(paper,{subtree:true,childList:true,attributes:true,characterData:true});
+  pageScroll.addEventListener('scroll',positionTableHandles); window.addEventListener('resize',positionTableHandles);
   paper.addEventListener('keydown', e => {
     if (e.target.matches('input[type="checkbox"]')) return;
     const el = selectionElement(); const cell = el?.closest('td,th'); const li = el?.closest('.checklist li');

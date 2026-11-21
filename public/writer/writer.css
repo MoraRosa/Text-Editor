@@ -233,6 +233,7 @@
     font-size: 15px;
   }
   .paper table td, .paper table th {
+    overflow-wrap: anywhere;
     border: 1px solid var(--border-color);
     padding: 8px 12px;
     text-align: left;
@@ -639,6 +640,12 @@
   @media(pointer:coarse) { .image-resize-handle { width:32px; height:32px; } .image-resize-handle.nw,.image-resize-handle.ne { top:-16px; } .image-resize-handle.sw,.image-resize-handle.se { bottom:-16px; } .image-resize-handle.nw,.image-resize-handle.sw { left:-16px; } .image-resize-handle.ne,.image-resize-handle.se { right:-16px; } }
   @media print { .image-handles,.image-drop-marker { display:none !important; } .paper img.selected-image { outline:none; } }
   .image-tools, .table-tools { display:none; align-items:center; gap:2px; }
+  .table-handles .table-column-handle { position:fixed; z-index:9; width:24px; min-width:24px; padding:0; border-radius:0; background:transparent; cursor:col-resize; touch-action:none; }
+  .table-column-handle::before { content:''; position:absolute; width:2px; height:100%; background:var(--accent); opacity:.45; }
+  .table-column-handle::after { content:''; position:absolute; top:5px; width:10px; height:22px; border:1px solid var(--accent); border-radius:4px; background:var(--bg-secondary); box-shadow:0 1px 4px var(--shadow); }
+  .table-column-handle:hover::before,.table-column-handle:focus-visible::before,.table-resizing .table-column-handle::before { opacity:1; }
+  .table-resizing,.table-resizing .paper { user-select:none; cursor:col-resize; }
+  @media print { .table-handles { display:none !important; } }
   .image-tools.visible, .table-tools.visible { display:flex; }
   .editor-select { background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px; padding:7px; max-width:140px; }
   .status-bar { justify-content:flex-start; padding:10px 25px; background:var(--bg-primary); }
