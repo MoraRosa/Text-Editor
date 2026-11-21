@@ -115,6 +115,7 @@
     try {
       const clone = paper.cloneNode(true);
       clone.querySelectorAll('mark[data-find]').forEach(m => m.replaceWith(...m.childNodes));
+      clone.querySelectorAll('img').forEach(i => i.classList.remove('selected-image'));
       const docs = getDocs();
       docs[currentId] = { html: clone.innerHTML, title: docTitle.value, savedAt: Date.now() };
       setDocs(docs);
@@ -700,21 +701,163 @@
     selectedTable = selectionElement()?.closest('table');
     document.getElementById('tableTools').classList.toggle('visible', !!selectedTable && paper.contains(selectedTable));
     document.getElementById('imageTools').classList.toggle('visible', !!selectedImage && paper.contains(selectedImage));
+    positionImageHandles();
   }
   document.addEventListener('selectionchange', contextTools);
   paper.addEventListener('click', e => {
+    if (suppressImageClick) return;
     paper.querySelectorAll('.selected-image').forEach(i => i.classList.remove('selected-image'));
     selectedImage = e.target.tagName === 'IMG' ? e.target : null;
-    if (selectedImage) { selectedImage.classList.add('selected-image'); document.getElementById('imageSize').value = String(parseInt(selectedImage.style.width) || 100); document.getElementById('imageAlign').value = selectedImage.style.marginLeft === 'auto' ? (selectedImage.style.marginRight === 'auto' ? 'center' : 'right') : 'left'; }
+    if (selectedImage) { selectedImage.classList.add('selected-image'); syncImageControls(); }
     contextTools();
   });
   for (const id of ['imageAlign','imageSize']) document.getElementById(id).addEventListener('change', e => {
     if (!selectedImage) return;
     const align = document.getElementById('imageAlign').value;
-    selectedImage.style.width = document.getElementById('imageSize').value + '%';
+    if (e.target.id === 'imageSize') selectedImage.style.width = e.target.value + '%';
     selectedImage.style.marginLeft = align === 'left' ? '0' : 'auto'; selectedImage.style.marginRight = align === 'right' ? '0' : 'auto'; changed();
   });
   document.getElementById('deleteImage').addEventListener('click', () => { selectedImage?.remove(); selectedImage = null; changed(); contextTools(); });
+
+  // Keep manipulation controls outside contenteditable, saves, and exports.
+  const imageHandles = document.createElement('div');
+  imageHandles.className = 'image-handles'; imageHandles.hidden = true;
+  for (const corner of ['nw', 'ne', 'sw', 'se']) {
+    const handle = document.createElement('button');
+    handle.type = 'button'; handle.className = 'tool image-resize-handle ' + corner;
+    handle.dataset.corner = corner;
+    handle.setAttribute('aria-label', 'Resize image ' + ({nw:'top left', ne:'top right', sw:'bottom left', se:'bottom right'})[corner]);
+    handle.title = 'Resize image'; imageHandles.append(handle);
+  }
+  const moveHandle = document.createElement('button');
+  moveHandle.type = 'button'; moveHandle.className = 'tool image-move-handle';
+  moveHandle.setAttribute('aria-label', 'Move image'); moveHandle.title = 'Drag to move image';
+  moveHandle.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>';
+  imageHandles.append(moveHandle); app.append(imageHandles);
+  const imageDropMarker = document.createElement('div');
+  imageDropMarker.className = 'image-drop-marker'; imageDropMarker.hidden = true; app.append(imageDropMarker);
+  let imageGesture = null, suppressImageClick = false, imageScrollFrame = 0;
+  function syncImageControls() {
+    if (!selectedImage) return;
+    const size = document.getElementById('imageSize');
+    size.querySelector('[data-custom]')?.remove();
+    const width = parseFloat(selectedImage.style.width) || 100;
+    const value = String(width);
+    if (![...size.options].some(o => o.value === value)) {
+      const option = document.createElement('option'); option.value = value;
+      option.textContent = Math.round(width) + '%'; option.dataset.custom = ''; size.append(option);
+    }
+    size.value = value;
+    document.getElementById('imageAlign').value = selectedImage.style.marginLeft === 'auto' ? (selectedImage.style.marginRight === 'auto' ? 'center' : 'right') : 'left';
+  }
+  function positionImageHandles() {
+    if (!selectedImage || !paper.contains(selectedImage)) { imageHandles.hidden = true; return; }
+    const rect = selectedImage.getBoundingClientRect(), view = pageScroll.getBoundingClientRect();
+    imageHandles.hidden = !rect.width || rect.bottom < view.top || rect.top > view.bottom;
+    Object.assign(imageHandles.style, {left:rect.left+'px', top:rect.top+'px', width:rect.width+'px', height:rect.height+'px',
+      clipPath:`inset(${Math.max(0, view.top-rect.top-16)}px -16px ${Math.max(0, rect.bottom-view.bottom-16)}px -16px)`});
+  }
+  new ResizeObserver(positionImageHandles).observe(paper);
+  pageScroll.addEventListener('scroll', positionImageHandles);
+  window.addEventListener('resize', positionImageHandles);
+  paper.addEventListener('load', positionImageHandles, true);
+  paper.addEventListener('dragstart', e => { if (e.target.tagName === 'IMG') e.preventDefault(); });
+  function beginImageGesture(e, corner) {
+    if (e.button !== 0 || !selectedImage || !paper.contains(selectedImage)) return;
+    e.preventDefault(); record();
+    const rect = selectedImage.getBoundingClientRect();
+    imageGesture = {image:selectedImage, corner, x:e.clientX, y:e.clientY, width:rect.width, height:rect.height,
+      originalWidth:selectedImage.style.width, moved:false, range:null, target:e.currentTarget, pointerId:e.pointerId};
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+  imageHandles.addEventListener('pointerdown', e => {
+    const button = e.target.closest('button'); if (!button) return;
+    beginImageGesture(e, button.dataset.corner || null);
+  });
+  paper.addEventListener('pointerdown', e => {
+    if (e.target.tagName !== 'IMG' || e.pointerType === 'touch') return;
+    paper.querySelectorAll('.selected-image').forEach(i => i.classList.remove('selected-image'));
+    selectedImage = e.target; selectedImage.classList.add('selected-image'); syncImageControls(); contextTools();
+    beginImageGesture(e, null);
+  });
+  function imageDropRange(x, y) {
+    const hit = document.elementFromPoint(x, y);
+    if (!hit || !paper.contains(hit) || hit === imageGesture.image || hit.closest('input')) return null;
+    let range = null;
+    if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(x, y);
+      if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); range.collapse(true); }
+    } else if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(x, y);
+    if (!range || !paper.contains(range.startContainer)) return null;
+    const el = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    if (el.closest('img,input')) return null;
+    return range;
+  }
+  function updateImageDrop(x, y) {
+    if (!imageGesture || imageGesture.corner) return;
+    const range = imageDropRange(x, y); imageGesture.range = range; imageDropMarker.hidden = !range;
+    if (range) {
+      const rect = range.getBoundingClientRect();
+      const el = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+      const fallback = el.getBoundingClientRect();
+      Object.assign(imageDropMarker.style, {left:(rect.height ? rect.left : fallback.left)+'px', top:(rect.height ? rect.top : fallback.top)+'px', height:(rect.height || 24)+'px'});
+    }
+  }
+  function scrollImageDrag() {
+    if (!imageGesture || imageGesture.corner || !imageGesture.moved) return;
+    const view = pageScroll.getBoundingClientRect(), y = imageGesture.lastY;
+    const step = y < view.top+48 ? -10 : y > view.bottom-48 ? 10 : 0;
+    if (step) { pageScroll.scrollTop += step; updateImageDrop(imageGesture.lastX, y); }
+    imageScrollFrame = requestAnimationFrame(scrollImageDrag);
+  }
+  document.addEventListener('pointermove', e => {
+    const g = imageGesture; if (!g || e.pointerId !== g.pointerId) return;
+    const dx = e.clientX-g.x, dy = e.clientY-g.y;
+    if (!g.moved && Math.hypot(dx,dy) < 5) return;
+    e.preventDefault(); g.moved = true; g.lastX = e.clientX; g.lastY = e.clientY;
+    app.classList.add('image-manipulating');
+    if (g.corner) {
+      const parent = g.image.parentElement, styles = getComputedStyle(parent);
+      const available = parent.clientWidth-parseFloat(styles.paddingLeft)-parseFloat(styles.paddingRight);
+      if (available <= 0) return;
+      const sx = g.corner.endsWith('e') ? 1 : -1, sy = g.corner.startsWith('s') ? 1 : -1;
+      const ratio = g.height/g.width;
+      const delta = (dx*sx + dy*sy*ratio)/(1+ratio*ratio);
+      const width = Math.min(available, Math.max(Math.min(48, available), g.width+delta));
+      g.image.style.width = (width/available*100).toFixed(2)+'%';
+      positionImageHandles();
+    } else {
+      updateImageDrop(e.clientX,e.clientY);
+      if (!imageScrollFrame) imageScrollFrame = requestAnimationFrame(scrollImageDrag);
+    }
+  }, {passive:false});
+  function finishImageGesture(cancel = false) {
+    const g = imageGesture; if (!g) return;
+    cancelAnimationFrame(imageScrollFrame); imageScrollFrame = 0;
+    if (cancel && g.corner) g.image.style.width = g.originalWidth;
+    if (!cancel && g.moved && !g.corner && g.range && paper.contains(g.range.startContainer)) {
+      g.range.insertNode(g.image); lastRange = null;
+    }
+    if (g.target.hasPointerCapture(g.pointerId)) g.target.releasePointerCapture(g.pointerId);
+    imageGesture = null; imageDropMarker.hidden = true; app.classList.remove('image-manipulating');
+    suppressImageClick = g.moved || g.target === paper; setTimeout(() => { suppressImageClick = false; }, 0);
+    if (g.moved && !cancel) changed();
+    syncImageControls(); positionImageHandles();
+  }
+  document.addEventListener('pointerup', e => { if (imageGesture?.pointerId === e.pointerId) finishImageGesture(); });
+  document.addEventListener('pointercancel', () => finishImageGesture(true));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && imageGesture) { e.preventDefault(); finishImageGesture(true); } });
+  imageHandles.addEventListener('keydown', e => {
+    if (!selectedImage || !e.target.dataset.corner || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
+    e.preventDefault(); record();
+    const width = parseFloat(selectedImage.style.width) || 100;
+    selectedImage.style.width = Math.max(5, Math.min(100, width + (['ArrowRight','ArrowDown'].includes(e.key) ? 1 : -1)*(e.shiftKey ? 10 : 1)))+'%';
+    changed(); syncImageControls(); positionImageHandles();
+  });
+  document.addEventListener('pointerdown', e => {
+    if (imageHandles.contains(e.target) || paper.contains(e.target) || e.target.closest('.toolbar')) return;
+    selectedImage?.classList.remove('selected-image'); selectedImage = null; contextTools();
+  });
   document.getElementById('addRow').addEventListener('click', () => { if (!selectedTable) return; const row = selectedTable.insertRow(); for (let i=0;i<selectedTable.rows[0].cells.length;i++) row.insertCell().innerHTML = '<br>'; placeCaret(row.cells[0]); changed(); });
   document.getElementById('addColumn').addEventListener('click', () => { if (!selectedTable) return; Array.from(selectedTable.rows).forEach(row => row.insertCell().innerHTML = '<br>'); changed(); });
   document.getElementById('deleteTable').addEventListener('click', () => { selectedTable?.remove(); selectedTable = null; lastRange = null; changed(); contextTools(); });

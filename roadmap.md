@@ -8,6 +8,7 @@
 ## Pending
 - [x] Add mic dictation (Web Speech API) and read-aloud (speechSynthesis) — free browser APIs, agreed plan.
 - [x] Enterprise polish: focus mode, shortcut overlay, multi-doc switcher (new/rename/delete), find & replace, reading time estimate.
-- [ ] Yap list: image drag/resize handles, table column resize, quote style review, table header-row option. (indent/outdent + delete row/col done)
+- [x] Image dragging and proportional resize handles, including touch controls, local restore, and undo/redo.
+- [ ] Yap list: table column resize, table header-row option. (quote style explained; indent/outdent + delete row/col done)
 - [ ] Move editor to GitHub and set up GitHub Pages (user's call tomorrow).
 - [ ] Evaluate PWA support (user undecided).- [x] Toolbar: horizontal scroll row, expand to show all, hide/show toggle

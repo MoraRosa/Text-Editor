@@ -14,3 +14,4 @@
 - Store drafts locally and sanitize both pasted and restored HTML, because this editor is deliberately device-only with no Cloud connection.
 
 - Offline support for the editor is a small hand-written service worker (public/writer/sw.js, registered from extras.js with preview/iframe/localhost guards) because the editor ships as plain static files with no build step; bump its VERSION when core files change.
+- Image manipulation uses pointer events and an overlay outside contenteditable so mouse/touch handles never enter drafts or exports; persist proportional widths through the existing sanitizer and snapshot history.

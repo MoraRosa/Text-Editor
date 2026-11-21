@@ -216,6 +216,7 @@
   .paper a { color: var(--accent); text-decoration: underline; }
   .paper img {
     max-width: 100%;
+    height: auto;
     border-radius: 6px;
     margin: 0.5em 0;
     display: block;
@@ -622,6 +623,21 @@
   .paper .checklist li > span { flex:1; min-width:0; }
   .paper img { cursor:pointer; }
   .paper img.selected-image { outline:2px solid var(--accent); outline-offset:4px; }
+  .image-handles { position:fixed; z-index:10; pointer-events:none; border:1px solid var(--accent); }
+  .image-handles[hidden], .image-drop-marker[hidden] { display:none; }
+  .image-handles .tool { pointer-events:auto; touch-action:none; position:absolute; padding:0; min-width:0; border:2px solid var(--accent); background:var(--bg-secondary); color:var(--text-primary); box-shadow:0 2px 6px var(--shadow); }
+  .image-handles .tool:hover { background:var(--bg-hover); }
+  .image-resize-handle { width:24px; height:24px; border-radius:4px; }
+  .image-resize-handle::after { content:''; width:7px; height:7px; border:1px solid var(--accent); }
+  .image-resize-handle.nw { left:-12px; top:-12px; cursor:nwse-resize; }
+  .image-resize-handle.ne { right:-12px; top:-12px; cursor:nesw-resize; }
+  .image-resize-handle.sw { left:-12px; bottom:-12px; cursor:nesw-resize; }
+  .image-resize-handle.se { right:-12px; bottom:-12px; cursor:nwse-resize; }
+  .image-handles .image-move-handle { width:36px; height:32px; left:50%; top:8px; transform:translateX(-50%); border-radius:6px; cursor:grab; }
+  .image-manipulating, .image-manipulating .paper { user-select:none; cursor:grabbing; }
+  .image-drop-marker { position:fixed; z-index:11; width:3px; background:var(--accent); pointer-events:none; }
+  @media(pointer:coarse) { .image-resize-handle { width:32px; height:32px; } .image-resize-handle.nw,.image-resize-handle.ne { top:-16px; } .image-resize-handle.sw,.image-resize-handle.se { bottom:-16px; } .image-resize-handle.nw,.image-resize-handle.sw { left:-16px; } .image-resize-handle.ne,.image-resize-handle.se { right:-16px; } }
+  @media print { .image-handles,.image-drop-marker { display:none !important; } .paper img.selected-image { outline:none; } }
   .image-tools, .table-tools { display:none; align-items:center; gap:2px; }
   .image-tools.visible, .table-tools.visible { display:flex; }
   .editor-select { background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border-color); border-radius:6px; padding:7px; max-width:140px; }
