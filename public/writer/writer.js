@@ -522,6 +522,7 @@
       if (node.tagName === 'A') { attrs.href = safeUrl(node.getAttribute('href')); attrs.rel = 'noopener noreferrer'; attrs.target = '_blank'; }
       if (node.tagName === 'IMG') { attrs.src = safeUrl(node.getAttribute('src'), true); attrs.alt = node.getAttribute('alt') || ''; }
       if (['TD','TH'].includes(node.tagName)) for (const k of ['colspan','rowspan']) { const v = parseInt(node.getAttribute(k)); if (v > 0 && v <= 20) attrs[k] = v; }
+      if (node.tagName === 'TH' && ['col','row','colgroup','rowgroup'].includes(node.getAttribute('scope'))) attrs.scope = node.getAttribute('scope');
       if (local) {
         if (node.classList.contains('checklist')) attrs.class = 'checklist';
         if (node.tagName === 'INPUT') { if (node.type !== 'checkbox') { node.remove(); return; } attrs.type = 'checkbox'; attrs.contenteditable = 'false'; attrs.tabindex = '0'; attrs['aria-label'] = 'Complete task'; if (node.hasAttribute('checked')) attrs.checked = ''; }
@@ -700,6 +701,9 @@
   function contextTools() {
     if (!tableGesture && !tableHandles.contains(document.activeElement)) selectedTable = selectionElement()?.closest('table');
     document.getElementById('tableTools').classList.toggle('visible', !!selectedTable && paper.contains(selectedTable));
+    const header = hasHeaderRow(selectedTable);
+    document.getElementById('tableHeader').setAttribute('aria-pressed', String(header));
+    document.getElementById('tableHeader').classList.toggle('active', header);
     document.getElementById('imageTools').classList.toggle('visible', !!selectedImage && paper.contains(selectedImage));
     positionImageHandles();
     positionTableHandles();
@@ -859,7 +863,28 @@
     if (imageHandles.contains(e.target) || paper.contains(e.target) || e.target.closest('.toolbar')) return;
     selectedImage?.classList.remove('selected-image'); selectedImage = null; contextTools();
   });
-  document.getElementById('addRow').addEventListener('click', () => { if (!selectedTable) return; const row = selectedTable.insertRow(); for (let i=0;i<selectedTable.rows[0].cells.length;i++) row.insertCell().innerHTML = '<br>'; placeCaret(row.cells[0]); changed(); });
+  function hasHeaderRow(table) {
+    const row = table?.rows[0];
+    return !!row?.cells.length && [...row.cells].every(cell => cell.tagName === 'TH');
+  }
+  document.getElementById('tableHeader').addEventListener('click', () => {
+    const row = selectedTable?.rows[0]; if (!row) return;
+    record();
+    const enable = !hasHeaderRow(selectedTable);
+    const oldCell = currentCell(); let caretCell = null;
+    [...row.cells].forEach(cell => {
+      const replacement = document.createElement(enable ? 'th' : 'td');
+      [...cell.attributes].forEach(attr => { if (attr.name !== 'scope') replacement.setAttribute(attr.name, attr.value); });
+      if (enable) replacement.setAttribute('scope', 'col');
+      replacement.append(...cell.childNodes); cell.replaceWith(replacement);
+      if (cell === oldCell) caretCell = replacement;
+    });
+    if (caretCell) placeCaret(caretCell, true);
+    else if (oldCell && selectedTable.contains(oldCell)) placeCaret(oldCell, true);
+    else placeCaret(row.cells[0], true);
+    changed(); contextTools();
+  });
+  document.getElementById('addRow').addEventListener('click', () => { if (!selectedTable) return; const body = selectedTable.tBodies[0] || selectedTable.createTBody(); const row = body.insertRow(); for (let i=0;i<selectedTable.rows[0].cells.length;i++) row.insertCell().innerHTML = '<br>'; placeCaret(row.cells[0]); changed(); });
   document.getElementById('addColumn').addEventListener('click', () => {
     if (!selectedTable) return;
     const cols = tableColumns(selectedTable);
@@ -868,7 +893,12 @@
       cols.forEach(c => c.style.width = (parseFloat(c.style.width)*scale)+'%');
       const col = document.createElement('col'); col.style.width = (100/(cols.length+1))+'%'; cols[0].parentElement.append(col);
     }
-    Array.from(selectedTable.rows).forEach(row => row.insertCell().innerHTML = '<br>'); changed();
+    Array.from(selectedTable.rows).forEach(row => {
+      const header = row === selectedTable.rows[0] && hasHeaderRow(selectedTable);
+      const cell = document.createElement(header ? 'th' : 'td');
+      if (header) cell.setAttribute('scope', 'col');
+      cell.innerHTML = '<br>'; row.append(cell);
+    }); changed(); contextTools();
   });
   document.getElementById('deleteTable').addEventListener('click', () => { selectedTable?.remove(); selectedTable = null; lastRange = null; changed(); contextTools(); });
   const currentCell = () => {
