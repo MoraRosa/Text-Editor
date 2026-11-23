@@ -1,6 +1,6 @@
 {
-  "name": "Writer — A quieter place to write",
-  "short_name": "Writer",
+  "name": "Scribe",
+  "short_name": "Scribe",
   "description": "A simple, theme-aware text editor with rich formatting, images, checklists and tables. Everything stays on your device.",
   "start_url": ".",
   "scope": ".",

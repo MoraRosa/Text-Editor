@@ -1,4 +1,56 @@
-/* Writer extras: animated favicon + offline support (vanilla, device-only). */
+/* Scribe extras: animated favicon + offline support (vanilla, device-only). */
+
+/* Browser fullscreen stays independent of distraction-free focus mode. */
+(function () {
+  const app = document.getElementById('app');
+  const enter = document.getElementById('fullscreenBtn');
+  const exit = document.getElementById('fullscreenExit');
+  const root = document.documentElement;
+  if (!app || !enter || !exit) return;
+  const supported = Boolean(
+    (document.fullscreenEnabled && root.requestFullscreen) ||
+    (document.webkitFullscreenEnabled && root.webkitRequestFullscreen)
+  );
+  const active = () => Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  function sync() {
+    const on = active();
+    app.classList.toggle('browser-fullscreen', on);
+    enter.setAttribute('aria-pressed', String(on));
+    enter.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Enter fullscreen');
+    enter.title = supported ? (on ? 'Exit fullscreen' : 'Fullscreen (Ctrl+Shift+Enter)') : 'Fullscreen unavailable in this browser';
+    enter.disabled = !supported;
+  }
+  async function toggle() {
+    if (!supported) return;
+    try {
+      // Invoke directly within the click/keypress to preserve browser user activation.
+      if (active()) {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      } else if (root.requestFullscreen) {
+        await root.requestFullscreen();
+      } else if (root.webkitRequestFullscreen) {
+        await root.webkitRequestFullscreen();
+      }
+    } catch (_) {
+      const status = document.getElementById('saveStatus');
+      if (status) status.textContent = 'Fullscreen was blocked by your browser.';
+    }
+    sync();
+  }
+  enter.addEventListener('click', toggle);
+  exit.addEventListener('click', toggle);
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'Enter' && supported) {
+      event.preventDefault();
+      toggle();
+    }
+  });
+  sync();
+})();
+
 (function () {
   'use strict';
 

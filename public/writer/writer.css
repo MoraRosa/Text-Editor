@@ -741,6 +741,13 @@ mark[data-find].current { outline: 2px solid var(--accent-hover); }
 .focus-exit:hover { opacity: 1; }
 .focus-mode .focus-exit { display: block; }
 
+/* Fullscreen exit remains reachable even when the top bar is hidden by focus. */
+.fullscreen-exit { display:none; position:fixed; right:16px; top:16px; width:36px; height:36px; justify-content:center; z-index:60; background:var(--bg-secondary); border:1px solid var(--border-color); }
+.browser-fullscreen .fullscreen-exit { display:inline-flex; }
+#fullscreenBtn[aria-pressed="true"] { color:var(--accent); }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+@media print { .fullscreen-exit { display:none !important; } }
+
 /* ---- Shortcuts modal ---- */
 .shortcut-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
 .shortcut-list > div { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }

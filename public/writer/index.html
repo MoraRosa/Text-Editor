@@ -1,10 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Writer — A quieter place to write</title><meta name="description" content="A simple, theme-aware text editor with rich formatting, images, checklists and tables. Everything stays on your device."><link rel="stylesheet" href="./writer.css"><link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#0a1035"><link rel="icon" id="favicon" type="image/png" sizes="64x64" href="./icons/favicon-64.png"><link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Writer"></head>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Scribe</title><meta name="description" content="A simple, theme-aware text editor with rich formatting, images, checklists and tables. Everything stays on your device."><link rel="stylesheet" href="./writer.css"><link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#0a1035"><link rel="icon" id="favicon" type="image/png" sizes="64x64" href="./icons/favicon-64.png"><link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Scribe"></head>
 <body>
 <div class="app theme-dark" id="app">
 
   <!-- Top bar -->
   <div class="topbar">
-<div class="brand"><svg viewBox="0 0 24 24"><path d="m4 17 1 4 4-1L21 8l-5-5L4 17Z"/><path d="m13 6 5 5M4 17l5 3"/></svg>Writer</div>
+<div class="brand"><svg viewBox="0 0 24 24"><path d="m4 17 1 4 4-1L21 8l-5-5L4 17Z"/><path d="m13 6 5 5M4 17l5 3"/></svg>Scribe</div>
     <input class="doc-title" id="docTitle" aria-label="Document title" value="Untitled document" spellcheck="false">
     <div class="doc-switcher">
       <select class="editor-select" id="docSelect" aria-label="Your documents"></select>
@@ -25,6 +25,9 @@
     </button>
     <button class="btn icon" id="focusBtn" aria-label="Focus mode" title="Focus mode (Ctrl+Shift+F)">
       <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    </button>
+    <button class="btn icon" id="fullscreenBtn" aria-label="Enter fullscreen" title="Fullscreen (Ctrl+Shift+Enter)" aria-pressed="false">
+      <svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></svg>
     </button>
     <button class="btn icon" id="helpBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (Ctrl+/)">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -214,6 +217,9 @@
     <span id="readTime">0 min read</span>
     <span><span class="dot"></span><span id="saveStatus" role="status" aria-live="polite">Ready</span></span>
   </div>
+  <button class="btn icon fullscreen-exit" id="fullscreenExit" aria-label="Exit fullscreen" title="Exit fullscreen">
+    <svg viewBox="0 0 24 24"><path d="M3 9h6V3m6 0v6h6M3 15h6v6m6 0v-6h6"/></svg>
+  </button>
   <button class="focus-exit" id="focusExit">Exit focus mode (Esc)</button>
 </div>
 
@@ -274,6 +280,7 @@
       <div><kbd>Ctrl</kbd>+<kbd>Y</kbd><span>Redo</span></div>
       <div><kbd>Ctrl</kbd>+<kbd>F</kbd><span>Find &amp; replace</span></div>
       <div><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd><span>Focus mode</span></div>
+      <div><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd><span>Fullscreen</span></div>
       <div><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd><span>Read aloud (from cursor)</span></div>
       <div><kbd>Ctrl</kbd>+<kbd>/</kbd><span>This list</span></div>
       <div><kbd>Tab</kbd><span>Next table cell / indent list</span></div>
