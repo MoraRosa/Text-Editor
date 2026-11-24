@@ -9,6 +9,10 @@
 - [x] Verify writing, formatting, insertions, export, theme changes, and local restore in the live editor.
 
 ## Pending
+- [ ] Add Markdown (.md) export.
+- [ ] Add starter templates: blank, letter, meeting notes, and checklist.
+- [ ] Add optional typewriter scrolling to keep the current line near the middle of the screen.
+- [ ] Add text wrapping beside left- or right-placed images.
 - [x] Add mic dictation (Web Speech API) and read-aloud (speechSynthesis) — free browser APIs, agreed plan.
 - [x] Enterprise polish: focus mode, shortcut overlay, multi-doc switcher (new/rename/delete), find & replace, reading time estimate.
 - [x] Image dragging and proportional resize handles, including touch controls, local restore, and undo/redo.

@@ -574,6 +574,7 @@
       else if (kind === 'pdf') exportPdf();
       else if (kind === 'txt') exportTxt();
       else if (kind === 'html') exportHtml();
+      else if (kind === 'md') exportMarkdown();
     });
   });
 
@@ -607,6 +608,14 @@
   function exportTxt() {
     const text = (docTitle.value ? docTitle.value + '\n\n' : '') + (paper.innerText || '');
     download(new Blob([text], { type: 'text/plain' }), docName('txt'));
+    setStatus('Downloaded');
+    setTimeout(() => setStatus('Saved'), 1400);
+  }
+
+  function exportMarkdown() {
+    const title = docTitle.value ? '# ' + window.scribeMarkdown('<p>' + escapeHtml(docTitle.value) + '</p>').trim() + '\n\n' : '';
+    const text = title + window.scribeMarkdown(sanitizeHtml(paper.innerHTML, true));
+    download(new Blob([text], { type: 'text/markdown;charset=utf-8' }), docName('md'));
     setStatus('Downloaded');
     setTimeout(() => setStatus('Saved'), 1400);
   }

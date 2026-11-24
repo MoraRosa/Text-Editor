@@ -1,6 +1,6 @@
 /* Writer offline worker: pages network-first, files cache-first. Bump VERSION to refresh. */
-const VERSION = 'writer-v8';
-const CORE = ['./', './index.html', './writer.css', './writer.js', './extras.js', './manifest.webmanifest',
+const VERSION = 'writer-v9';
+const CORE = ['./', './index.html', './writer.css', './markdown.js', './writer.js', './extras.js', './manifest.webmanifest',
   './icons/favicon-32.png', './icons/favicon-64.png', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

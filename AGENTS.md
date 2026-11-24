@@ -18,3 +18,4 @@
 - Table column resizing uses external pointer handles and sanitized percentage-width colgroups with fixed table layout; resize adjacent columns without changing total width and maintain colgroups on column insertion/deletion.
 - Table headers use first-row TH cells with scope="col", preserved by sanitization and column insertion, so saved drafts and exports retain accessible header semantics.
 - Keep browser fullscreen in the vanilla extras script independent of focus mode, requesting the document root so dialogs and editing overlays remain visible; allow fullscreen on the embedding iframe.
+- Markdown export uses a standalone vanilla serializer on sanitized draft HTML; cache it with the editor so exports remain device-only and available offline.
