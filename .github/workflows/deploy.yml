@@ -1,4 +1,4 @@
-name: Deploy Writer to GitHub Pages
+name: Deploy Scribe to GitHub Pages
 
 on:
   push:
